@@ -67,11 +67,10 @@ const AddProductPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
                 const [brandsRes, catsRes, condsRes] = await Promise.all([
-                    fetch(`${baseUrl}/brands`),
-                    fetch(`${baseUrl}/categories`),
-                    fetch(`${baseUrl}/conditions`)
+                    fetch(`${API_BASE_URL}/brands`),
+                    fetch(`${API_BASE_URL}/categories`),
+                    fetch(`${API_BASE_URL}/conditions`)
                 ]);
 
                 if (brandsRes.ok && catsRes.ok && condsRes.ok) {
