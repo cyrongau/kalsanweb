@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, User, Mail, Shield, Users, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 interface UserEditModalProps {
     isOpen: boolean;
@@ -43,7 +44,7 @@ export default function UserEditModal({ isOpen, onClose, user, onUpdate }: UserE
                 team: formData.team === 'None' ? null : formData.team,
             };
 
-            const response = await fetch(`http://localhost:3001/users/${user.id}`, {
+            const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

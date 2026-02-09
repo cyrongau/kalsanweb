@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2, FolderPlus } from 'lucide-react';
 import { useNotification } from '@/components/providers/NotificationProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Category {
     id: string;
@@ -40,7 +41,7 @@ const CategoryModal = ({ isOpen, onClose, category, parentCategories, onSave }: 
         e.preventDefault();
         setIsSaving(true);
         try {
-            const url = category ? `http://localhost:3001/categories/${category.id}` : 'http://localhost:3001/categories';
+            const url = category ? `${API_BASE_URL}/categories/${category.id}` : `${API_BASE_URL}/categories`;
             const method = category ? 'PATCH' : 'POST';
 
             const res = await fetch(url, {

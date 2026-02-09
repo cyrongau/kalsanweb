@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_BASE_URL } from '@/lib/config';
 
 interface AdminProfile {
     displayName: string;
@@ -138,7 +139,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
     catalogBanner: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=2000',
     shippingBanner: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000',
     maintenanceMode: false,
-    apiBaseUrl: 'http://localhost:3001',
+    apiBaseUrl: API_BASE_URL,
     heroSlider: [],
     banners: [],
     categoryHighlights: DEFAULT_HIGHLIGHTS,
@@ -212,8 +213,8 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const fetchStats = async () => {
         try {
             const [quotesRes, ordersRes] = await Promise.all([
-                fetch('http://localhost:3001/quotes/stats/count'),
-                fetch('http://localhost:3001/orders/stats/count')
+                fetch(`${API_BASE_URL}/quotes/stats/count`),
+                fetch(`${API_BASE_URL}/orders/stats/count`)
             ]);
 
             if (quotesRes.ok) setUnreadQuotesCount(await quotesRes.json());
@@ -227,7 +228,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const response = await fetch('http://localhost:3001/settings');
+                const response = await fetch(`${API_BASE_URL}/settings`);
                 if (response.ok) {
                     const data = await response.json();
                     if (Object.keys(data).length > 0) {
@@ -270,7 +271,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
     const markAsRead = async (type: 'quotes' | 'orders', id: string) => {
         try {
-            const response = await fetch(`http://localhost:3001/${type}/${id}/read`, {
+            const response = await fetch(`${API_BASE_URL}/${type}/${id}/read`, {
                 method: 'PATCH',
             });
             if (response.ok) {
@@ -288,7 +289,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         setSettings(newSettings);
 
         try {
-            await fetch('http://localhost:3001/settings', {
+            await fetch(`${API_BASE_URL}/settings`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates),

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useNotification } from "@/components/providers/NotificationProvider";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function QuotePage() {
     const { quoteItems, updateQuoteQuantity, removeFromQuote, clearQuote } = useQuote();
@@ -35,7 +36,7 @@ export default function QuotePage() {
 
         setIsSubmitting(true);
         try {
-            const res = await fetch('http://localhost:3001/quotes', {
+            const res = await fetch(`${API_BASE_URL}/quotes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

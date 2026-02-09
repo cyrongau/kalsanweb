@@ -15,7 +15,7 @@ interface Vehicle {
 }
 
 const GaragePage = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const { showToast, showModal } = useNotification();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,23 +23,14 @@ const GaragePage = () => {
     const [formData, setFormData] = useState<Vehicle>({ year: '', make: '', model: '' });
 
     useEffect(() => {
-        const saved = localStorage.getItem('user_vehicles');
-        if (saved) {
-            setVehicles(JSON.parse(saved));
-        } else {
-            // Initial mock data if none exists
-            const initial = [
-                { year: '2022', make: 'Toyota', model: 'Land Cruiser V8' },
-                { year: '2021', make: 'Honda', model: 'Civic' }
-            ];
-            setVehicles(initial);
-            localStorage.setItem('user_vehicles', JSON.stringify(initial));
+        if (user?.garage_details) {
+            setVehicles(user.garage_details);
         }
-    }, []);
+    }, [user?.garage_details]);
 
-    const saveToStorage = (newVehicles: Vehicle[]) => {
+    const saveToStorage = async (newVehicles: Vehicle[]) => {
         setVehicles(newVehicles);
-        localStorage.setItem('user_vehicles', JSON.stringify(newVehicles));
+        await updateUser({ garage_details: newVehicles });
     };
 
     const handleOpenAdd = () => {

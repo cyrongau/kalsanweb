@@ -14,6 +14,7 @@ import {
     Users,
     Loader2
 } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/config';
 import AdminLayout from '@/components/admin/AdminLayout';
 import UserEditModal from '@/components/admin/UserEditModal';
 import { cn } from '@/lib/utils';
@@ -68,7 +69,7 @@ const AdminUserManagementPage = () => {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:3001/users');
+            const response = await fetch(`${API_BASE_URL}/users`);
             if (response.ok) {
                 const data = await response.json();
                 setUsers(data);

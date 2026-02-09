@@ -79,9 +79,9 @@ const TaxonomyManager = () => {
         setIsLoading(true);
         try {
             const [brandsRes, categoriesRes, conditionsRes] = await Promise.all([
-                fetch('http://localhost:3001/brands'),
-                fetch('http://localhost:3001/categories'),
-                fetch('http://localhost:3001/conditions')
+                fetch(`${API_BASE_URL}/brands`),
+                fetch(`${API_BASE_URL}/categories`),
+                fetch(`${API_BASE_URL}/conditions`)
             ]);
 
             if (brandsRes.ok && categoriesRes.ok && conditionsRes.ok) {
@@ -125,7 +125,7 @@ const TaxonomyManager = () => {
             message: 'Are you sure you want to remove this brand? All associated brand metadata will be lost.',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`http://localhost:3001/brands/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE_URL}/brands/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         showToast('Brand Deleted', 'The brand has been removed successfully.', 'success');
                         fetchData();
@@ -149,7 +149,7 @@ const TaxonomyManager = () => {
             message: 'Are you sure you want to remove this category? This will also affect any associated child categories.',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`http://localhost:3001/categories/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         showToast('Category Deleted', 'The category has been removed successfully.', 'success');
                         fetchData();
@@ -173,7 +173,7 @@ const TaxonomyManager = () => {
             message: 'Are you sure you want to remove this condition? Products using this condition may be affected.',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`http://localhost:3001/conditions/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE_URL}/conditions/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         showToast('Condition Deleted', 'The condition has been removed successfully.', 'success');
                         fetchData();
@@ -507,7 +507,7 @@ const BrandModal = ({ isOpen, onClose, brand, onSave }: BrandModalProps) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            const url = brand ? `http://localhost:3001/brands/${brand.id}` : 'http://localhost:3001/brands';
+            const url = brand ? `${API_BASE_URL}/brands/${brand.id}` : `${API_BASE_URL}/brands`;
             const method = brand ? 'PATCH' : 'POST';
 
             const { products_count, ...payload } = formData as any;
@@ -755,7 +755,7 @@ const ConditionModal = ({ isOpen, onClose, condition, onSave }: any) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            const url = condition ? `http://localhost:3001/conditions/${condition.id}` : 'http://localhost:3001/conditions';
+            const url = condition ? `${API_BASE_URL}/conditions/${condition.id}` : `${API_BASE_URL}/conditions`;
             const method = condition ? 'PATCH' : 'POST';
 
             const res = await fetch(url, {

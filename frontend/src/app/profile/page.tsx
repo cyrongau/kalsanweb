@@ -27,17 +27,17 @@ const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState('Profile Info');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [userAvatar, setUserAvatar] = useState('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200');
+    const [userAvatar, setUserAvatar] = useState(user?.avatar_url || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200');
 
     const [formData, setFormData] = useState({
-        fullName: user?.name || 'John Doe',
-        email: user?.email || 'john.doe@example.com',
-        phone: user?.phone || '+252 63 4459488',
-        nationality: user?.nationality || 'Somalilander',
+        fullName: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        nationality: user?.nationality || '',
     });
 
-    const handleSaveProfile = () => {
-        updateUser({
+    const handleSaveProfile = async () => {
+        await updateUser({
             name: formData.fullName,
             email: formData.email,
             phone: formData.phone,
@@ -46,27 +46,8 @@ const ProfilePage = () => {
         showToast('Success', 'Profile updated successfully', 'success');
     };
 
-    const [vehicles, setVehicles] = useState([
-        { year: '2022', make: 'Toyota', model: 'Land Cruiser V8' },
-        { year: '2021', make: 'Honda', model: 'Civic' }
-    ]);
-
-
-    const [addresses, setAddresses] = useState<Address[]>([
-        {
-            type: 'Home',
-            label: 'Primary Residence',
-            address: '123 Road Number 1\nKood-Buur District\nHargeisa, Somaliland\nZIP: 00252',
-            isDefault: true
-        },
-        {
-            type: 'Office',
-            label: 'Headquarters',
-            address: 'Global Trade Center, Suite 402\nIndependence Avenue\nHargeisa, Somaliland\nZIP: 00252',
-            isDefault: false
-        }
-    ]);
-
+    const [vehicles, setVehicles] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [editingAddressIndex, setEditingAddressIndex] = useState<number | null>(null);
     const [addressForm, setAddressForm] = useState<Address>({
@@ -77,37 +58,27 @@ const ProfilePage = () => {
     });
 
     useEffect(() => {
-        const savedAvatar = localStorage.getItem('user_avatar');
-        if (savedAvatar) setUserAvatar(savedAvatar);
-
-        // Mocking vehicle population from orders
-        // In a real app, this would fetch unique vehicles from the user's order history
-        const savedVehicles = localStorage.getItem('user_vehicles');
-        if (savedVehicles) {
-            setVehicles(JSON.parse(savedVehicles));
+        if (user) {
+            setFormData({
+                fullName: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                nationality: user.nationality || '',
+            });
+            if (user.avatar_url) setUserAvatar(user.avatar_url);
+            if (user.garage_details) setVehicles(user.garage_details);
+            if (user.addresses) setAddresses(user.addresses);
         }
-        // Load addresses
-        const savedAddresses = localStorage.getItem('user_addresses');
-        if (savedAddresses) {
-            setAddresses(JSON.parse(savedAddresses));
-        }
-    }, []);
+    }, [user]);
 
-    // Save addresses to localStorage whenever they change
-    useEffect(() => {
-        if (addresses.length > 0) {
-            localStorage.setItem('user_addresses', JSON.stringify(addresses));
-        }
-    }, [addresses]);
-
-    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
                 const base64String = reader.result as string;
                 setUserAvatar(base64String);
-                localStorage.setItem('user_avatar', base64String);
+                await updateUser({ avatar_url: base64String });
             };
             reader.readAsDataURL(file);
         }
@@ -130,7 +101,7 @@ const ProfilePage = () => {
         setIsAddressModalOpen(true);
     };
 
-    const handleSaveAddress = () => {
+    const handleSaveAddress = async () => {
         if (!addressForm.label || !addressForm.address) {
             showToast('Error', 'Please fill in all fields', 'error');
             return;
@@ -152,24 +123,22 @@ const ProfilePage = () => {
         }
 
         setAddresses(newAddresses);
+        await updateUser({ addresses: newAddresses });
         setIsAddressModalOpen(false);
-        showToast('Success', `Address ${editingAddressIndex !== null ? 'updated' : 'added'} successfully`);
+        showToast('Success', 'Address saved successfully');
     };
 
     const handleRemoveAddress = (index: number) => {
         showModal({
-            title: 'Delete Address',
-            message: 'Are you sure you want to remove this address? This action cannot be undone.',
+            title: 'Remove Address',
+            message: 'Are you sure you want to remove this address?',
             type: 'confirm',
-            confirmText: 'Delete',
-            onConfirm: () => {
-                const newAddresses = addresses.filter((_, idx) => idx !== index);
-                // If we deleted the default, make the first one default if available
-                if (addresses[index].isDefault && newAddresses.length > 0) {
-                    newAddresses[0].isDefault = true;
-                }
+            confirmText: 'Remove',
+            onConfirm: async () => {
+                const newAddresses = addresses.filter((_, i) => i !== index);
                 setAddresses(newAddresses);
-                showToast('Success', 'Address removed successfully');
+                await updateUser({ addresses: newAddresses });
+                showToast('Success', 'Address removed');
             }
         });
     };

@@ -8,6 +8,7 @@ import AuthSplitLayout from '@/components/AuthSplitLayout';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useNotification } from '@/components/providers/NotificationProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 const LoginPage = () => {
     const router = useRouter();
@@ -25,7 +26,7 @@ const LoginPage = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:3001/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -5,6 +5,7 @@ import SmartSearch from "./SmartSearch";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
 
 const SidebarFilters = () => {
     const router = useRouter();
@@ -17,9 +18,9 @@ const SidebarFilters = () => {
         const fetchData = async () => {
             try {
                 const [brandsRes, catsRes, condsRes] = await Promise.all([
-                    fetch('http://localhost:3001/brands'),
-                    fetch('http://localhost:3001/categories'),
-                    fetch('http://localhost:3001/conditions')
+                    fetch(`${API_BASE_URL}/brands`),
+                    fetch(`${API_BASE_URL}/categories`),
+                    fetch(`${API_BASE_URL}/conditions`)
                 ]);
 
                 if (brandsRes.ok) {

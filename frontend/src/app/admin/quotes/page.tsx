@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 const QuotesPage = () => {
     const { showToast } = useNotification();
@@ -47,8 +48,7 @@ const QuotesPage = () => {
     const fetchQuotes = async () => {
         setIsLoading(true);
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/quotes`);
+            const res = await fetch(`${API_BASE_URL}/quotes`);
             if (res.ok) {
                 const data = await res.json();
                 setQuotes(data);

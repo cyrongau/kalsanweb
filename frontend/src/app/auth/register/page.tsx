@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, ShieldCheck, Truck, Loader2, AlertCircle } from 'lucide-react';
 import AuthSplitLayout from '@/components/AuthSplitLayout';
+import { API_BASE_URL } from '@/lib/config';
 
 const RegisterPage = () => {
     const router = useRouter();
@@ -44,7 +45,7 @@ const RegisterPage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3001/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

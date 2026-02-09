@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_BASE_URL } from '@/lib/config';
 
 interface User {
     id: string;
@@ -60,11 +61,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // but adding it here ensures it always happens.
     };
 
-    const updateUser = (updates: Partial<User>) => {
-        if (!user) return;
-        const updatedUser = { ...user, ...updates };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
+    const updateUser = async (updates: Partial<User>) => {
+        if (!user || !token) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updates)
+            });
+
+            if (res.ok) {
+                const updatedUser = await res.json();
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                setUser(updatedUser);
+            }
+        } catch (error) {
+            console.error("Failed to sync user updates to backend", error);
+            // Fallback to local update if backend fails (optional)
+            const localUpdate = { ...user, ...updates };
+            localStorage.setItem('user', JSON.stringify(localUpdate));
+            setUser(localUpdate);
+        }
     };
 
     return (

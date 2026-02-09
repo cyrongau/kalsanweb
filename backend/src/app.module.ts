@@ -30,6 +30,7 @@ import { Condition } from './conditions/condition.entity';
 import { ChatModule } from './chat/chat.module';
 import { ChatConversation } from './chat/conversation.entity';
 import { ChatMessage } from './chat/message.entity';
+import { StatsModule } from './stats/stats.module';
 
 
 @Module({
@@ -61,6 +62,7 @@ import { ChatMessage } from './chat/message.entity';
     MailsModule,
     ConditionsModule,
     ChatModule,
+    StatsModule,
   ],
   controllers: [AppController, UploadsController],
   providers: [AppService],

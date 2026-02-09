@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, X, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/config';
 
 import Link from 'next/link';
 
@@ -37,7 +38,7 @@ const SmartSearch = () => {
             if (query.trim().length >= 2) {
                 setIsLoading(true);
                 try {
-                    const response = await fetch(`http://localhost:3001/products/search?q=${encodeURIComponent(query)}`);
+                    const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(query)}`);
                     if (response.ok) {
                         const data = await response.json();
                         setResults(data);

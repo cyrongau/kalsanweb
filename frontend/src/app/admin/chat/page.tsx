@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { MessageCircle, Send, User, Shield, Wrench, BarChart3, CheckCircle2, Clock, Search, Phone, Mail, ChevronRight } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Message {
     id: string;
@@ -47,7 +48,7 @@ export default function AdminChatPage() {
     const selectedConversation = conversations.find(c => c.id === selectedId);
 
     const fetchActive = () => {
-        fetch('http://localhost:3001/chat/conversations/active')
+        fetch(`${API_BASE_URL}/chat/conversations/active`)
             .then(res => res.json())
             .then(data => setConversations(data));
     };
@@ -55,7 +56,7 @@ export default function AdminChatPage() {
     const fetchHistory = async () => {
         setIsLoadingHistory(true);
         try {
-            const res = await fetch('http://localhost:3001/chat/conversations/resolved');
+            const res = await fetch(`${API_BASE_URL}/chat/conversations/resolved`);
             const data = await res.json();
             setHistoryConversations(data);
         } catch (error) {
@@ -69,7 +70,7 @@ export default function AdminChatPage() {
         fetchActive();
 
         // Socket setup
-        socketRef.current = io('http://localhost:3001');
+        socketRef.current = io(API_BASE_URL);
 
         socketRef.current.on('connect', () => {
             socketRef.current?.emit('admin_join');
@@ -80,7 +81,7 @@ export default function AdminChatPage() {
                 const index = prev.findIndex(c => c.id === data.conversationId);
                 if (index === -1) {
                     // New conversation (need to fetch full details or handle differently)
-                    fetch(`http://localhost:3001/chat/conversations/${data.conversationId}`)
+                    fetch(`${API_BASE_URL}/chat/conversations/${data.conversationId}`)
                         .then(res => res.json())
                         .then(newConv => setConversations(current => [newConv, ...current]));
                     return prev;
@@ -148,7 +149,7 @@ export default function AdminChatPage() {
     const resolveChat = async () => {
         if (!selectedId) return;
         try {
-            await fetch(`http://localhost:3001/chat/conversations/${selectedId}/resolve`, { method: 'POST' });
+            await fetch(`${API_BASE_URL}/chat/conversations/${selectedId}/resolve`, { method: 'POST' });
             if (activeTab === 'active') {
                 setConversations(prev => prev.filter(c => c.id !== selectedId));
             } else {

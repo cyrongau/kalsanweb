@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Upload, Link as LinkIcon, Image as ImageIcon, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/config';
 
 interface ImageSelectionModalProps {
     isOpen: boolean;
@@ -43,7 +44,7 @@ const ImageSelectionModal = ({
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('http://localhost:3001/uploads', {
+                const response = await fetch(`${API_BASE_URL}/uploads`, {
                     method: 'POST',
                     body: formData,
                 });

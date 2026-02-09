@@ -5,6 +5,7 @@ import { MessageCircle, X, Send, User, Shield, Wrench, BarChart3, ChevronLeft, P
 import { cn } from '@/lib/utils';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 type Team = 'Support' | 'Technical' | 'Sales & Marketing';
 
@@ -39,7 +40,7 @@ export default function SupportChat() {
 
     // Socket initialization
     useEffect(() => {
-        socketRef.current = io('http://localhost:3001');
+        socketRef.current = io(API_BASE_URL);
 
         socketRef.current.on('new_message', (message: Message) => {
             setMessages(prev => {
@@ -94,7 +95,7 @@ export default function SupportChat() {
         if (!selectedTeam || (!user && !isPreChatDone)) return;
 
         try {
-            const res = await fetch('http://localhost:3001/chat/conversations', {
+            const res = await fetch(`${API_BASE_URL}/chat/conversations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { API_BASE_URL } from '@/lib/config';
 
 const StatCard = ({ icon: Icon, label, value, trend, color, alert }: any) => (
     <div className={cn(
@@ -51,13 +52,14 @@ const StatCard = ({ icon: Icon, label, value, trend, color, alert }: any) => (
     </div>
 );
 
-const RecentInquiriesTable = () => {
-    const inquiries = [
-        { date: 'Oct 24, 2023', customer: 'John Doe', avatar: '1', part: 'Brake Pads - Front', brand: 'Brembo', status: 'New' },
-        { date: 'Oct 23, 2023', customer: 'Jane Smith', avatar: '2', part: 'Oil Filter', brand: 'Mann-Filter', status: 'Processing' },
-        { date: 'Oct 23, 2023', customer: 'Mike Ross', avatar: '3', part: 'Spark Plugs', brand: 'NGK', status: 'Responded' },
-        { date: 'Oct 22, 2023', customer: 'Harvey Specter', avatar: '4', part: 'Radiator Fan Assembly', brand: 'Bosch', status: 'New' },
-    ];
+const RecentInquiriesTable = ({ data = [] }: { data: any[] }) => {
+    const inquiries = data.map(item => ({
+        date: new Date(item.created_at).toLocaleDateString(),
+        customer: item.guest_name || item.user?.name || 'Guest',
+        part: item.items?.[0]?.product_name || 'Multiple Parts',
+        brand: item.items?.[0]?.brand || 'N/A',
+        status: item.status
+    }));
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm h-full flex flex-col">
@@ -88,7 +90,7 @@ const RecentInquiriesTable = () => {
                                 <td className="py-5">
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-secondary dark:text-white">
-                                            {item.customer.split(' ').map(n => n[0]).join('')}
+                                            {item.customer.split(' ').map((n: string) => n[0]).join('')}
                                         </div>
                                         <span className="text-sm font-bold text-secondary dark:text-white">{item.customer}</span>
                                     </div>
@@ -129,8 +131,11 @@ const RecentInquiriesTable = () => {
     );
 };
 
-const TrendsVisualization = () => {
-    const bars = [40, 60, 45, 75, 55, 35, 65, 50, 60, 70, 40, 80, 75, 45];
+const TrendsVisualization = ({ data }: { data: any }) => {
+    const bars = data?.bars || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const peakDemand = data?.peakDemand || 'N/A';
+    const averageDaily = data?.averageDaily || 0;
+    const increasePercentage = data?.increasePercentage || 0;
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm flex flex-col h-full">
@@ -140,8 +145,8 @@ const TrendsVisualization = () => {
             </div>
 
             {/* Mock Chart */}
-            <div className="flex-1 flex items-end justify-between gap-2 h-48 relative mb-8">
-                {bars.map((height, idx) => (
+            <div className="flex-1 flex items-end justify-between gap-2 h-40 relative mb-8 min-h-[160px]">
+                {bars.map((height: number, idx: number) => (
                     <div
                         key={idx}
                         className={cn(
@@ -156,9 +161,9 @@ const TrendsVisualization = () => {
             </div>
 
             <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest mb-10">
-                <span>Oct 01</span>
-                <span>Oct 15</span>
-                <span>Oct 30</span>
+                <span>Start</span>
+                <span>Mid</span>
+                <span>Today</span>
             </div>
 
             <div className="space-y-4">
@@ -167,20 +172,22 @@ const TrendsVisualization = () => {
                         <div className="w-2 h-2 rounded-full bg-blue-600" />
                         <span className="text-xs font-medium text-gray-500">Peak Demand</span>
                     </div>
-                    <span className="text-xs font-black text-secondary dark:text-white uppercase">Tue, Oct 24</span>
+                    <span className="text-xs font-black text-secondary dark:text-white uppercase">{peakDemand}</span>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-blue-100" />
                         <span className="text-xs font-medium text-gray-500">Average Daily</span>
                     </div>
-                    <span className="text-xs font-black text-secondary dark:text-white uppercase">28 Inquiries</span>
+                    <span className="text-xs font-black text-secondary dark:text-white uppercase">{averageDaily} Inquiries</span>
                 </div>
             </div>
 
             <div className="mt-auto pt-8 border-t border-gray-50 dark:border-slate-800">
                 <p className="text-[10px] text-gray-400 leading-relaxed font-medium capitalize">
-                    Inquiries have increased by <span className="text-emerald-500 font-black">18%</span> compared to the previous 30-day period. Most traffic originates from mobile requests.
+                    Inquiries have changed by <span className={cn("font-black", increasePercentage >= 0 ? "text-emerald-500" : "text-red-500")}>
+                        {increasePercentage >= 0 ? '+' : ''}{increasePercentage}%
+                    </span> compared to the previous period.
                 </p>
             </div>
         </div>
@@ -188,6 +195,42 @@ const TrendsVisualization = () => {
 };
 
 const DashboardOverview = () => {
+    const [stats, setStats] = React.useState<any>(null);
+    const [inquiries, setInquiries] = React.useState<any[]>([]);
+    const [trends, setTrends] = React.useState<any>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const [overviewRes, inquiriesRes, trendsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/stats/overview`),
+                    fetch(`${API_BASE_URL}/stats/recent-inquiries`),
+                    fetch(`${API_BASE_URL}/stats/trends`)
+                ]);
+
+                if (overviewRes.ok) setStats(await overviewRes.json());
+                if (inquiriesRes.ok) setInquiries(await inquiriesRes.json());
+                if (trendsRes.ok) setTrends(await trendsRes.json());
+            } catch (error) {
+                console.error("Failed to fetch dashboard data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <AdminLayout>
+                <div className="flex items-center justify-center h-[60vh]">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </AdminLayout>
+        );
+    }
+
     return (
         <AdminLayout>
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -196,40 +239,40 @@ const DashboardOverview = () => {
                     <StatCard
                         icon={BarChart3}
                         label="Total Inquiries"
-                        value="1,284"
-                        trend="+12.4%"
+                        value={stats?.totalInquiries || 0}
+                        trend="+0%"
                         color="blue"
                     />
                     <StatCard
                         icon={Clock}
                         label="Pending Quotes"
-                        value="42"
+                        value={stats?.pendingQuotes || 0}
                         color="orange"
-                        alert="Needs attention"
+                        alert={stats?.pendingQuotes > 0 ? "Needs attention" : null}
                     />
                     <StatCard
                         icon={Users2}
                         label="New Customers"
-                        value="156"
-                        trend="+5%"
+                        value={stats?.newCustomers || 0}
+                        trend="+0%"
                         color="emerald"
                     />
                     <StatCard
                         icon={AlertTriangle}
                         label="Low Stock Alerts"
-                        value="8"
+                        value={stats?.lowStockAlerts || 0}
                         color="red"
-                        alert="Restock Now"
+                        alert={stats?.lowStockAlerts > 0 ? "Restock Now" : null}
                     />
                 </div>
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-8">
                     <div className="lg:col-span-2">
-                        <RecentInquiriesTable />
+                        <RecentInquiriesTable data={inquiries} />
                     </div>
                     <div>
-                        <TrendsVisualization />
+                        <TrendsVisualization data={trends} />
                     </div>
                 </div>
             </div>

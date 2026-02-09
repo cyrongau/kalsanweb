@@ -17,6 +17,7 @@ import {
     Loader2,
     X
 } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useNotification } from '@/components/providers/NotificationProvider';
@@ -162,7 +163,7 @@ const AddProductPage = () => {
                 stock_status: type === 'publish' ? 'in_stock' : 'draft'
             };
 
-            const res = await fetch('http://localhost:3001/products', {
+            const res = await fetch(`${API_BASE_URL}/products`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

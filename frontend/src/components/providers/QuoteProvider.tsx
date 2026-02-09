@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNotification } from './NotificationProvider';
+import { useAuth } from './AuthProvider';
 
 export interface Product {
     id: number | string;
@@ -31,36 +32,45 @@ interface QuoteContextType {
 const QuoteContext = createContext<QuoteContextType | undefined>(undefined);
 
 export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user, updateUser } = useAuth();
     const [favorites, setFavorites] = useState<Product[]>([]);
     const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
     const { showToast } = useNotification();
 
-    // Load from localStorage
+    // Load favorites from user profile on mount or when user changes
     useEffect(() => {
-        const savedFavorites = localStorage.getItem('user_favorites');
-        const savedQuote = localStorage.getItem('user_quote_cart');
+        if (user?.favorites) {
+            // In a real app, you might want to fetch full product details for each ID
+            // For now, we'll maintain the current logic of storing full objects in the backend favorites field for simplicity
+            // or we store just IDs and fetch. Let's stick to full objects in JSONB for this prototype to preserve UI state.
+            setFavorites(user.favorites as any[]);
+        }
+    }, [user?.favorites]);
 
-        if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+    // Load quoteItems from localStorage (Cart is typically local until checkout)
+    useEffect(() => {
+        const savedQuote = localStorage.getItem('user_quote_cart');
         if (savedQuote) setQuoteItems(JSON.parse(savedQuote));
     }, []);
 
     // Save to localStorage
     useEffect(() => {
-        localStorage.setItem('user_favorites', JSON.stringify(favorites));
-    }, [favorites]);
-
-    useEffect(() => {
         localStorage.setItem('user_quote_cart', JSON.stringify(quoteItems));
     }, [quoteItems]);
 
-    const toggleFavorite = (product: Product) => {
+    const toggleFavorite = async (product: Product) => {
         const exists = favorites.find(p => p.id === product.id);
+        let newFavorites;
         if (exists) {
-            setFavorites(prev => prev.filter(p => p.id !== product.id));
+            newFavorites = favorites.filter(p => p.id !== product.id);
             showToast('Removed', 'Removed from saved parts');
         } else {
-            setFavorites(prev => [...prev, product]);
+            newFavorites = [...favorites, product];
             showToast('Saved', 'Added to saved parts');
+        }
+        setFavorites(newFavorites);
+        if (user) {
+            await updateUser({ favorites: newFavorites as any });
         }
     };
 

@@ -8,6 +8,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useQuote } from "@/components/providers/QuoteProvider";
 import { BrandLogo } from "@/components/BrandLogo";
+import { API_BASE_URL } from "@/lib/config";
 import SearchModal from "@/components/SearchModal";
 import { useAdmin } from "@/components/providers/AdminProvider";
 import { useNotification } from "@/components/providers/NotificationProvider";
@@ -40,7 +41,7 @@ const Navbar = () => {
     useEffect(() => {
         const fetchBrands = async () => {
             try {
-                const res = await fetch('http://localhost:3001/brands');
+                const res = await fetch(`${API_BASE_URL}/brands`);
                 if (res.ok) {
                     const data = await res.json();
                     setBrands(data.filter((b: any) => b.is_active));

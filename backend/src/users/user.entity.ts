@@ -26,8 +26,23 @@ export class User {
     })
     role: UserRole;
 
+    @Column({ nullable: true })
+    name: string;
+
+    @Column({ nullable: true })
+    phone: string;
+
+    @Column({ nullable: true })
+    avatar_url: string;
+
     @Column({ type: 'jsonb', nullable: true })
-    garage_details: any;
+    addresses: any[];
+
+    @Column({ type: 'jsonb', nullable: true })
+    favorites: string[]; // Array of product IDs
+
+    @Column({ type: 'jsonb', nullable: true })
+    garage_details: any[];
 
     @Column({ default: false })
     twoFactorEnabled: boolean;

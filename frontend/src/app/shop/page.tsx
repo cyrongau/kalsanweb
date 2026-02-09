@@ -8,6 +8,7 @@ import SidebarFilters from "@/components/SidebarFilters";
 import { cn } from "@/lib/utils";
 
 import { useAdmin } from "@/components/providers/AdminProvider";
+import { API_BASE_URL } from "@/lib/config";
 import ProductCard from "@/components/ProductCard";
 
 interface Product {
@@ -70,7 +71,7 @@ export default function ShopPage() {
 
         const fetchCategories = async () => {
             try {
-                const res = await fetch('http://localhost:3001/categories');
+                const res = await fetch(`${API_BASE_URL}/categories`);
                 if (res.ok) setCategories(await res.json());
             } catch (error) {
                 console.error("Failed to fetch categories:", error);
