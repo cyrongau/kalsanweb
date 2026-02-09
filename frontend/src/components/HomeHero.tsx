@@ -30,19 +30,26 @@ const HomeHero = () => {
     const { settings } = useAdmin();
     const slides = settings.heroSlider?.length > 0 ? settings.heroSlider : DEFAULT_SLIDES;
     const [current, setCurrent] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
+        if (isHovered) return;
+
         const timer = setInterval(() => {
             setCurrent((prev) => (prev + 1) % slides.length);
         }, 6000);
         return () => clearInterval(timer);
-    }, [slides.length]);
+    }, [slides.length, isHovered]);
 
     const next = () => setCurrent((prev) => (prev + 1) % slides.length);
     const prev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
     return (
-        <section className="relative h-[600px] md:h-[800px] w-full overflow-hidden bg-slate-900">
+        <section
+            className="relative h-[600px] md:h-[800px] w-full overflow-hidden bg-slate-900"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
             {slides.map((slide, idx) => (
                 <div
                     key={slide.id}
