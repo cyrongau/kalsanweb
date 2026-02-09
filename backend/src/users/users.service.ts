@@ -41,7 +41,7 @@ export class UsersService {
         return this.usersRepository.find();
     }
 
-    async update(id: string, data: Partial<User>): Promise<User> {
+    async update(id: string, data: any): Promise<User> {
         if (data.password) {
             data.password_hash = await bcrypt.hash(data.password, 10);
             delete data.password;
