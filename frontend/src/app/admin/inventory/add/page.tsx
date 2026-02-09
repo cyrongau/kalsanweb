@@ -99,8 +99,7 @@ const AddProductPage = () => {
         formData.append('file', file);
 
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/uploads`, {
+            const res = await fetch(`${API_BASE_URL}/uploads`, {
                 method: 'POST',
                 body: formData,
             });

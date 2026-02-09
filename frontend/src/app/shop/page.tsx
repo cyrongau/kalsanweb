@@ -8,7 +8,7 @@ import SidebarFilters from "@/components/SidebarFilters";
 import { cn } from "@/lib/utils";
 
 import { useAdmin } from "@/components/providers/AdminProvider";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, normalizeImageUrl } from "@/lib/config";
 import ProductCard from "@/components/ProductCard";
 
 interface Product {
@@ -55,8 +55,7 @@ export default function ShopPage() {
                 if (condition) params.set('condition', condition);
                 if (sort) params.set('sort', sort);
 
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const url = `${baseUrl}/products?${params.toString()}`;
+                const url = `${API_BASE_URL}/products?${params.toString()}`;
                 const response = await fetch(url);
                 if (response.ok) {
                     const data = await response.json();
@@ -255,7 +254,7 @@ export default function ShopPage() {
                                             id: p.id,
                                             name: p.name,
                                             category: p.category?.name || 'Uncategorized',
-                                            image: p.image_urls?.[0] || 'https://placehold.co/400x300/f3f4f6/1d428a?text=No+Image',
+                                            image: normalizeImageUrl(p.image_urls?.[0]) || 'https://placehold.co/400x300/f3f4f6/1d428a?text=No+Image',
                                             sku: p.sku,
                                             rating: p.rating
                                         }}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 interface AdminProfile {
     displayName: string;
@@ -232,7 +232,34 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
                 if (response.ok) {
                     const data = await response.json();
                     if (Object.keys(data).length > 0) {
-                        setSettings(prev => ({ ...prev, ...data }));
+                        const normalizedData = { ...data };
+
+                        // Normalize banners
+                        if (normalizedData.banners) {
+                            normalizedData.banners = normalizedData.banners.map((b: any) => ({
+                                ...b,
+                                image: normalizeImageUrl(b.image)
+                            }));
+                        }
+
+                        // Normalize hero slider
+                        if (normalizedData.heroSlider) {
+                            normalizedData.heroSlider = normalizedData.heroSlider.map((s: any) => ({
+                                ...s,
+                                image: normalizeImageUrl(s.image)
+                            }));
+                        }
+
+                        // Normalize specific banners
+                        if (normalizedData.contactBanner) normalizedData.contactBanner = normalizeImageUrl(normalizedData.contactBanner);
+                        if (normalizedData.supportBanner) normalizedData.supportBanner = normalizeImageUrl(normalizedData.supportBanner);
+                        if (normalizedData.catalogBanner) normalizedData.catalogBanner = normalizeImageUrl(normalizedData.catalogBanner);
+                        if (normalizedData.shippingBanner) normalizedData.shippingBanner = normalizeImageUrl(normalizedData.shippingBanner);
+                        if (normalizedData.logoLight) normalizedData.logoLight = normalizeImageUrl(normalizedData.logoLight);
+                        if (normalizedData.logoDark) normalizedData.logoDark = normalizeImageUrl(normalizedData.logoDark);
+                        if (normalizedData.siteIcon) normalizedData.siteIcon = normalizeImageUrl(normalizedData.siteIcon);
+
+                        setSettings(prev => ({ ...prev, ...normalizedData }));
                     }
                 }
             } catch (error) {

@@ -8,7 +8,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useQuote } from "@/components/providers/QuoteProvider";
 import { BrandLogo } from "@/components/BrandLogo";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, normalizeImageUrl } from "@/lib/config";
 import SearchModal from "@/components/SearchModal";
 import { useAdmin } from "@/components/providers/AdminProvider";
 import { useNotification } from "@/components/providers/NotificationProvider";
@@ -158,7 +158,7 @@ const Navbar = () => {
                                                             >
                                                                 <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-1 border border-transparent group-hover/brand-link:border-primary/20 transition-all">
                                                                     {brand.logo_url ? (
-                                                                        <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
+                                                                        <img src={normalizeImageUrl(brand.logo_url)} alt={brand.name} className="w-full h-full object-contain" />
                                                                     ) : (
                                                                         <span className="text-[10px] font-black text-gray-400 uppercase">{brand.name.slice(0, 2)}</span>
                                                                     )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ShoppingBag } from 'lucide-react';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { normalizeImageUrl } from '@/lib/config';
 
 const banners = [
     {
@@ -46,7 +47,7 @@ const HomeBanners = () => {
 
                             <div className="relative z-10 space-y-6">
                                 <div className="w-20 h-20 bg-white/90 backdrop-blur-md rounded-[2rem] mx-auto flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                                    <img src={banner.image} alt={banner.title} className="w-10 h-10 object-contain" />
+                                    <img src={normalizeImageUrl(banner.image)} alt={banner.title} className="w-10 h-10 object-contain" />
                                 </div>
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.3em]">Special Offer</p>

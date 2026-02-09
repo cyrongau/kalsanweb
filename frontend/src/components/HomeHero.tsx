@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { normalizeImageUrl } from '@/lib/config';
 
 const DEFAULT_SLIDES = [
     {
@@ -53,7 +54,7 @@ const HomeHero = () => {
                     {/* Background Image with Overlay */}
                     <div className="absolute inset-0 z-0">
                         <img
-                            src={slide.image}
+                            src={normalizeImageUrl(slide.image)}
                             alt={slide.headline}
                             className="w-full h-full object-cover"
                         />

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/components/providers/QuoteProvider';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 interface Brand {
     id: string;
@@ -35,21 +36,20 @@ const BrandPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const brandRes = await fetch(`${baseUrl}/brands/${slug}`);
+                const brandRes = await fetch(`${API_BASE_URL}/brands/${slug}`);
                 if (brandRes.ok) {
                     const brandData = await brandRes.json();
                     setBrand(brandData);
 
                     // Fetch real products associated with the brand slug
-                    const productsRes = await fetch(`${baseUrl}/products/brand/slug/${slug}`);
+                    const productsRes = await fetch(`${API_BASE_URL}/products/brand/slug/${slug}`);
                     if (productsRes.ok) {
                         const productsData = await productsRes.json();
                         setProducts(productsData.map((p: any) => ({
                             id: p.id,
                             name: p.name,
                             category: p.category?.name || 'Uncategorized',
-                            image: p.image_urls?.[0] || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image',
+                            image: normalizeImageUrl(p.image_urls?.[0]) || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image',
                             sku: p.sku,
                             rating: p.rating || 5
                         })));
@@ -74,7 +74,7 @@ const BrandPage = () => {
             <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src={brand.hero_banner_url || "/brands/hero-bg.jpg"}
+                        src={normalizeImageUrl(brand.hero_banner_url) || "/brands/hero-bg.jpg"}
                         className="w-full h-full object-cover opacity-60 dark:opacity-40"
                         alt={brand.name}
                     />
@@ -101,7 +101,7 @@ const BrandPage = () => {
                     <div className="bg-white dark:bg-slate-950 rounded-[3rem] p-12 md:p-20 shadow-soft border border-gray-100 dark:border-slate-800 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <div className="bg-gray-50 dark:bg-slate-900 rounded-[2rem] overflow-hidden aspect-square flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-inner group/img">
                             <img
-                                src={brand.logo_url || "/brands/placeholder-vehicle.jpg"}
+                                src={normalizeImageUrl(brand.logo_url) || "/brands/placeholder-vehicle.jpg"}
                                 alt={brand.name}
                                 className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-700"
                             />

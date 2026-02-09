@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 const OrderDetailsPage = () => {
     const params = useParams();
@@ -35,8 +36,7 @@ const OrderDetailsPage = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const res = await fetch(`${baseUrl}/orders/${params.id}`);
+                const res = await fetch(`${API_BASE_URL}/orders/${params.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setOrder(data);
@@ -64,8 +64,7 @@ const OrderDetailsPage = () => {
     const handleUpdateStatus = async () => {
         setIsSubmitting(true);
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/orders/${params.id}/status`, {
+            const res = await fetch(`${API_BASE_URL}/orders/${params.id}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status, trackingNumber })

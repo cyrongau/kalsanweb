@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { normalizeImageUrl } from '@/lib/config';
 
 interface ProductGalleryProps {
     images: string[];
@@ -16,7 +17,7 @@ const ProductGallery = ({ images }: ProductGalleryProps) => {
             {/* Main Image */}
             <div className="relative aspect-square rounded-[2rem] bg-white border border-gray-100 overflow-hidden group shadow-soft">
                 <img
-                    src={images[activeImage]}
+                    src={normalizeImageUrl(images[activeImage])}
                     alt="Product detail"
                     className="w-full h-full object-contain p-8 transform transition-transform duration-500 group-hover:scale-110"
                 />
@@ -36,7 +37,7 @@ const ProductGallery = ({ images }: ProductGalleryProps) => {
                             activeImage === idx ? "border-primary shadow-md" : "border-transparent hover:border-gray-200"
                         )}
                     >
-                        <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-contain" />
+                        <img src={normalizeImageUrl(img)} alt={`Thumbnail ${idx}`} className="w-full h-full object-contain" />
                         {idx === 3 && ( // Sample video icon for the last one as per prototype
                             <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center text-gray-500">
                                 <Play size={20} className="fill-current" />

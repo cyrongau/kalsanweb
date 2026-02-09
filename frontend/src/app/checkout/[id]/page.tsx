@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
 import { generateReceiptPDF } from '@/lib/pdf-utils';
+import { API_BASE_URL } from '@/lib/config';
 
 interface MobileProvider {
     id: string;
@@ -57,8 +58,7 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
             }
 
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const res = await fetch(`${baseUrl}/quotes/${quoteId}`);
+                const res = await fetch(`${API_BASE_URL}/quotes/${quoteId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setQuote(data);
@@ -82,8 +82,7 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
         setIsProcessing(true);
 
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/quotes/${quote.id}/finalize`, {
+            const res = await fetch(`${API_BASE_URL}/quotes/${quote.id}/finalize`, {
                 method: 'POST',
             });
 

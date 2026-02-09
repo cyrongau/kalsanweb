@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 const QuoteDetailsPage = () => {
     const params = useParams();
@@ -37,8 +38,7 @@ const QuoteDetailsPage = () => {
     useEffect(() => {
         const fetchQuote = async () => {
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const res = await fetch(`${baseUrl}/quotes/${params.id}`);
+                const res = await fetch(`${API_BASE_URL}/quotes/${params.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setQuote(data);
@@ -76,8 +76,7 @@ const QuoteDetailsPage = () => {
     const handleSendResponse = async () => {
         setIsSubmitting(true);
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/quotes/${params.id}/prices`, {
+            const res = await fetch(`${API_BASE_URL}/quotes/${params.id}/prices`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: prices })

@@ -28,8 +28,8 @@ export class UploadsController {
         if (!file) {
             throw new BadRequestException('File is required');
         }
-        // Return the full URL
-        const fileUrl = `http://localhost:3001/uploads/${file.filename}`;
+        // Return the relative path
+        const fileUrl = `/uploads/${file.filename}`;
         return { url: fileUrl };
     }
 }

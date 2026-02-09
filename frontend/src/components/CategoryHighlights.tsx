@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdmin } from "@/components/providers/AdminProvider";
+import { normalizeImageUrl } from "@/lib/config";
 
 const categories = [
     {
@@ -52,7 +53,7 @@ const CategoryHighlights = () => {
                         <div className="w-full md:w-1/2 min-h-[300px] relative overflow-hidden rounded-[3rem] transition-all duration-700">
                             <div
                                 className="absolute inset-0 bg-center bg-no-repeat bg-cover transform group-hover:scale-110 transition-transform duration-1000"
-                                style={{ backgroundImage: `url(${cat.image})` }}
+                                style={{ backgroundImage: `url(${normalizeImageUrl(cat.image)})` }}
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />

@@ -5,7 +5,7 @@ import SmartSearch from "./SmartSearch";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, normalizeImageUrl } from "@/lib/config";
 
 const SidebarFilters = () => {
     const router = useRouter();
@@ -143,7 +143,7 @@ const SidebarFilters = () => {
                                 isActive('brand', brand.slug) ? "bg-primary/10" : "bg-gray-50 dark:bg-muted/30 group-hover:bg-primary/5"
                             )}>
                                 {brand.logo_url ? (
-                                    <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
+                                    <img src={normalizeImageUrl(brand.logo_url)} alt={brand.name} className="w-full h-full object-contain" />
                                 ) : (
                                     <span className={cn(
                                         "text-lg font-black transition-all",

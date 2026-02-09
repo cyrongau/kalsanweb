@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, Star, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuote, Product } from "@/components/providers/QuoteProvider";
+import { normalizeImageUrl } from "@/lib/config";
 
 interface ProductCardProps {
     product: Product;
@@ -29,7 +30,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <Link href={`/shop/${product.id}`} className="block w-full h-full">
                     <div
                         className="absolute inset-0 bg-center bg-no-repeat bg-cover transform group-hover:scale-110 transition-transform duration-1000"
-                        style={{ backgroundImage: `url("${product.image}")`, backgroundColor: '#f3f4f6' }}
+                        style={{ backgroundImage: `url("${normalizeImageUrl(product.image)}")`, backgroundColor: '#f3f4f6' }}
                     />
                 </Link>
 

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 const OrdersPage = () => {
     const { showToast } = useNotification();
@@ -45,8 +46,7 @@ const OrdersPage = () => {
     const fetchOrders = async () => {
         setIsLoading(true);
         try {
-            const baseUrl = window.location.origin.replace('3000', '3001');
-            const res = await fetch(`${baseUrl}/orders`);
+            const res = await fetch(`${API_BASE_URL}/orders`);
             if (res.ok) {
                 const data = await res.json();
                 setOrders(data);

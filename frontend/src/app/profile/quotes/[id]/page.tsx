@@ -19,6 +19,7 @@ import { useAdmin } from '@/components/providers/AdminProvider';
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/config';
 
 const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: string }> }) => {
     const params = React.use(paramsPromise);
@@ -30,8 +31,7 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
     useEffect(() => {
         const fetchQuote = async () => {
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const res = await fetch(`${baseUrl}/quotes/${params.id}`);
+                const res = await fetch(`${API_BASE_URL}/quotes/${params.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setQuote(data);

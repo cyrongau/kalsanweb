@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import ProductCard from "./ProductCard";
 import { Product } from "@/components/providers/QuoteProvider";
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 const LatestArrivals = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -14,15 +15,14 @@ const LatestArrivals = () => {
         const fetchLatestProducts = async () => {
             setIsLoading(true);
             try {
-                const baseUrl = window.location.origin.replace('3000', '3001');
-                const response = await fetch(`${baseUrl}/products?limit=4&sort=newest`);
+                const response = await fetch(`${API_BASE_URL}/products?limit=4&sort=newest`);
                 if (response.ok) {
                     const data = await response.json();
                     setProducts(data.map((p: any) => ({
                         id: p.id,
                         name: p.name,
                         category: p.category?.name || 'Uncategorized',
-                        image: p.image_urls?.[0] || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image',
+                        image: normalizeImageUrl(p.image_urls?.[0]) || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image',
                         sku: p.sku,
                         rating: p.rating || 5
                     })));
