@@ -17,7 +17,7 @@ import {
     Loader2,
     X
 } from 'lucide-react';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useNotification } from '@/components/providers/NotificationProvider';
@@ -385,7 +385,7 @@ const AddProductPage = () => {
                                             images[i] ? "border-solid border-gray-100" : "border-gray-200"
                                         )}>
                                             {images[i] ? (
-                                                <img src={images[i]} alt="Product" className="w-full h-full object-cover" />
+                                                <img src={normalizeImageUrl(images[i])} alt="Product" className="w-full h-full object-cover" />
                                             ) : (
                                                 <Plus size={20} className="text-gray-300" />
                                             )}

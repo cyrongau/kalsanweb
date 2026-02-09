@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import ImageSelectionModal from '@/components/admin/ImageSelectionModal';
 import ConfirmationModal from '@/components/admin/ConfirmationModal';
@@ -280,7 +280,7 @@ const TaxonomyManager = () => {
                                 <div key={brand.id} className="p-6 flex items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                                     <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 overflow-hidden p-1 flex items-center justify-center shrink-0">
                                         {brand.logo_url ? (
-                                            <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
+                                            <img src={normalizeImageUrl(brand.logo_url)} alt={brand.name} className="w-full h-full object-contain" />
                                         ) : (
                                             <div className="text-xs font-black text-gray-300 uppercase">{brand.name.slice(0, 2)}</div>
                                         )}
@@ -592,7 +592,7 @@ const BrandModal = ({ isOpen, onClose, brand, onSave }: BrandModalProps) => {
                                     className="aspect-square bg-gray-50 dark:bg-slate-950 rounded-[2rem] border-2 border-dashed border-gray-100 dark:border-slate-800 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all group overflow-hidden"
                                 >
                                     {formData.logo_url ? (
-                                        <img src={formData.logo_url} className="w-full h-full object-contain" />
+                                        <img src={normalizeImageUrl(formData.logo_url)} className="w-full h-full object-contain" />
                                     ) : (
                                         <div className="text-center space-y-2">
                                             <Upload className="mx-auto text-gray-200 group-hover:text-primary transition-colors" size={32} />
@@ -608,7 +608,7 @@ const BrandModal = ({ isOpen, onClose, brand, onSave }: BrandModalProps) => {
                                     className="aspect-square bg-gray-50 dark:bg-slate-950 rounded-[2rem] border-2 border-dashed border-gray-100 dark:border-slate-800 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all group overflow-hidden"
                                 >
                                     {formData.hero_banner_url ? (
-                                        <img src={formData.hero_banner_url} className="w-full h-full object-cover" />
+                                        <img src={normalizeImageUrl(formData.hero_banner_url)} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="text-center space-y-2">
                                             <Upload className="mx-auto text-gray-200 group-hover:text-primary transition-colors" size={32} />

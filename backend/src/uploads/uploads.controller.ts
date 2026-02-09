@@ -1,10 +1,12 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Logger } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @Controller('uploads')
 export class UploadsController {
+    private readonly logger = new Logger(UploadsController.name);
+
     @Post()
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
@@ -26,10 +28,12 @@ export class UploadsController {
     }))
     uploadFile(@UploadedFile() file: Express.Multer.File) {
         if (!file) {
+            this.logger.error('Upload attempt failed: No file provided');
             throw new BadRequestException('File is required');
         }
         // Return the relative path
         const fileUrl = `/uploads/${file.filename}`;
+        this.logger.log(`File uploaded successfully: ${fileUrl}`);
         return { url: fileUrl };
     }
 }

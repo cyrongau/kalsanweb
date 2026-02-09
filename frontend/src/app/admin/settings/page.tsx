@@ -17,7 +17,7 @@ import {
     Clock,
     Bell
 } from 'lucide-react';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminSettingsSidebar from '@/components/admin/AdminSettingsSidebar';
@@ -228,7 +228,7 @@ const AdminSettingsPage = () => {
                                             className="w-full h-24 bg-blue-100 rounded-xl flex items-center justify-center text-primary font-black text-xs tracking-[0.2em] uppercase cursor-pointer overflow-hidden p-4 group"
                                         >
                                             {localSettings.logoLight ? (
-                                                <img src={localSettings.logoLight} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.logoLight)} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
                                             ) : (
                                                 "Kalsan Logo"
                                             )}
@@ -242,7 +242,7 @@ const AdminSettingsPage = () => {
                                             className="w-full h-24 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-white font-black text-xs tracking-[0.2em] uppercase cursor-pointer overflow-hidden p-4 group"
                                         >
                                             {localSettings.logoDark ? (
-                                                <img src={localSettings.logoDark} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.logoDark)} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
                                             ) : (
                                                 "Kalsan Logo"
                                             )}
@@ -255,7 +255,7 @@ const AdminSettingsPage = () => {
                                             className="w-20 h-20 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center text-white font-black text-xs tracking-[0.2em] uppercase cursor-pointer overflow-hidden p-2 group"
                                         >
                                             {localSettings.siteIcon ? (
-                                                <img src={localSettings.siteIcon} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.siteIcon)} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                                             ) : (
                                                 "Icon"
                                             )}
@@ -307,7 +307,7 @@ const AdminSettingsPage = () => {
                                         </div>
                                         <div className="w-full h-40 bg-white dark:bg-slate-950 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-center overflow-hidden group">
                                             {localSettings.contactBanner ? (
-                                                <img src={localSettings.contactBanner} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.contactBanner)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                             ) : (
                                                 <AlertCircle size={32} className="text-gray-100" />
                                             )}
@@ -326,7 +326,7 @@ const AdminSettingsPage = () => {
                                         </div>
                                         <div className="w-full h-40 bg-white dark:bg-slate-950 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-center overflow-hidden group">
                                             {localSettings.supportBanner ? (
-                                                <img src={localSettings.supportBanner} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.supportBanner)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                             ) : (
                                                 <AlertCircle size={32} className="text-gray-100" />
                                             )}
@@ -345,7 +345,7 @@ const AdminSettingsPage = () => {
                                         </div>
                                         <div className="w-full h-40 bg-white dark:bg-slate-950 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-center overflow-hidden group">
                                             {localSettings.catalogBanner ? (
-                                                <img src={localSettings.catalogBanner} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.catalogBanner)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                             ) : (
                                                 <AlertCircle size={32} className="text-gray-100" />
                                             )}
@@ -364,7 +364,7 @@ const AdminSettingsPage = () => {
                                         </div>
                                         <div className="w-full h-40 bg-white dark:bg-slate-950 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-center overflow-hidden group">
                                             {localSettings.shippingBanner ? (
-                                                <img src={localSettings.shippingBanner} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <img src={normalizeImageUrl(localSettings.shippingBanner)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                             ) : (
                                                 <AlertCircle size={32} className="text-gray-100" />
                                             )}
