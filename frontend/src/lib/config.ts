@@ -1,13 +1,19 @@
 const getBaseUrl = () => {
-    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-
-    // In browser, if we are not on localhost, default to the /api relative path
+    // 1. In browser, if we are NOT on localhost, ALWAYS use the relative /api path
+    // This prevents "Local Network" prompts and ensures production alignment
     if (typeof window !== 'undefined') {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        const hostname = window.location.hostname;
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '0.0.0.0') {
             return '/api';
         }
     }
 
+    // 2. Use environment variable if available (set during Docker build)
+    if (process.env.NEXT_PUBLIC_API_URL) {
+        return process.env.NEXT_PUBLIC_API_URL;
+    }
+
+    // 3. Fallback for local development
     return 'http://localhost:3001';
 };
 
