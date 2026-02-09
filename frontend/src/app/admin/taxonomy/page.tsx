@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { API_BASE_URL } from '@/lib/config';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import ImageSelectionModal from '@/components/admin/ImageSelectionModal';
 import ConfirmationModal from '@/components/admin/ConfirmationModal';
