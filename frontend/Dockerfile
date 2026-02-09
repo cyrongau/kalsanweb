@@ -12,6 +12,10 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Add build-time environment variables for Next.js
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Generate build
 RUN npm run build
 
