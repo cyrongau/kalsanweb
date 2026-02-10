@@ -12,8 +12,9 @@ export class ProductsService {
         private productsRepository: Repository<Product>,
     ) { }
 
-    async findAll(filters: { category?: string, brand?: string, condition?: string, q?: string, sort?: string } = {}): Promise<Product[]> {
-        const { category, brand, condition, q, sort } = filters;
+    async findAll(filters: { category?: string, brand?: string, condition?: string, q?: string, sort?: string, limit?: string } = {}): Promise<Product[]> {
+        const { category, brand, condition, q, sort, limit } = filters;
+        this.logger.log(`findAll filters: ${JSON.stringify(filters)}`);
 
         const queryBuilder = this.productsRepository.createQueryBuilder('product')
             .leftJoinAndSelect('product.brand', 'brand')
@@ -53,7 +54,13 @@ export class ProductsService {
                 queryBuilder.orderBy('product.created_at', 'DESC');
         }
 
-        return queryBuilder.getMany();
+        if (limit) {
+            queryBuilder.take(parseInt(limit));
+        }
+
+        const results = await queryBuilder.getMany();
+        this.logger.log(`findAll results count: ${results.length}`);
+        return results;
     }
 
     findOne(id: string): Promise<Product | null> {

@@ -60,7 +60,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-white/5 blur-3xl rounded-full" />
         <div className="container mx-auto px-4 relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="max-w-3xl space-y-4 text-center lg:text-left">
-            <h2 className="text-5xl md:text-7xl font-black text-[#fdfeff] dark:text-foreground tracking-tighter leading-tight">Keep Your Vehicle in <span className="text-[#abbcdd] dark:text-primary">Great Condition</span></h2>
+            <h2 className="text-5xl md:text-7xl font-black !text-white dark:text-foreground tracking-tighter leading-tight">Keep Your Vehicle in <span className="text-[#abbcdd] dark:text-primary">Great Condition</span></h2>
             <p className="text-white dark:text-gray-400 text-xl font-medium max-w-2xl">We stock a variety of genuine spare parts at very competitive prices. Download our catalog or shop online today.</p>
           </div>
           <Link href="/shop" className="bg-white dark:bg-primary text-primary dark:text-white px-12 py-6 rounded-3xl font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-2xl flex items-center gap-4 whitespace-nowrap">

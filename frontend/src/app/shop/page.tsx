@@ -55,11 +55,15 @@ export default function ShopPage() {
                 if (condition) params.set('condition', condition);
                 if (sort) params.set('sort', sort);
 
-                const url = `${API_BASE_URL}/products?${params.toString()}`;
+                const url = params.toString() ? `${API_BASE_URL}/products?${params.toString()}` : `${API_BASE_URL}/products`;
+                console.log("Fetching shop products from:", url);
                 const response = await fetch(url);
                 if (response.ok) {
                     const data = await response.json();
-                    setProducts(data);
+                    console.log("Shop products data:", data);
+                    setProducts(Array.isArray(data) ? data : []);
+                } else {
+                    console.error("Shop products fetch error:", response.status, response.statusText);
                 }
             } catch (error) {
                 console.error("Failed to fetch products:", error);

@@ -11,9 +11,10 @@ export class ProductsController {
         @Query('brand') brand?: string,
         @Query('condition') condition?: string,
         @Query('q') q?: string,
-        @Query('sort') sort?: string
+        @Query('sort') sort?: string,
+        @Query('limit') limit?: string
     ) {
-        return this.productsService.findAll({ category, brand, condition, q, sort });
+        return this.productsService.findAll({ category, brand, condition, q, sort, limit });
     }
 
     @Get('search')

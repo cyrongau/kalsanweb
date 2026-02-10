@@ -18,14 +18,16 @@ const LatestArrivals = () => {
                 const response = await fetch(`${API_BASE_URL}/products?limit=4&sort=newest`);
                 if (response.ok) {
                     const data = await response.json();
-                    setProducts(data.map((p: any) => ({
+                    setProducts(Array.isArray(data) ? data.map((p: any) => ({
                         id: p.id,
                         name: p.name,
                         category: p.category?.name || 'Uncategorized',
                         image: normalizeImageUrl(p.image_urls?.[0]) || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image',
                         sku: p.sku,
                         rating: p.rating || 5
-                    })));
+                    })) : []);
+                } else {
+                    console.error("Latest arrivals fetch error:", response.status, response.statusText);
                 }
             } catch (error) {
                 console.error("Failed to fetch latest arrivals:", error);
