@@ -1,19 +1,14 @@
 const getBaseUrl = () => {
     // 1. In browser, if we are NOT on localhost, ALWAYS use the relative /api path
-    // This prevents "Local Network" prompts and ensures production alignment
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '0.0.0.0') {
+            console.log("Config: Production detected, using /api prefix");
             return '/api';
         }
     }
 
-    // 2. Use environment variable if available (set during Docker build)
-    if (process.env.NEXT_PUBLIC_API_URL) {
-        return process.env.NEXT_PUBLIC_API_URL;
-    }
-
-    // 3. Fallback for local development
+    // 2. Fallback for local development or SSR
     return 'http://localhost:3001';
 };
 
