@@ -19,6 +19,7 @@ import { AdminProvider } from "@/components/providers/AdminProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { QuoteProvider } from "@/components/providers/QuoteProvider";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
+import { DebugConfig } from "@/components/DebugConfig";
 
 export default function RootLayout({
   children,
@@ -36,6 +37,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AdminProvider>
+              <DebugConfig />
               <DynamicFavicon />
               <NotificationProvider>
                 <QuoteProvider>
