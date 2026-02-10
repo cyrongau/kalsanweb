@@ -19,13 +19,20 @@ const specifications = [
     { label: 'Surface Finish', value: 'Anti-Corrosive Coating' },
 ];
 
-const ProductDetailTabs = () => {
+interface ProductDetailTabsProps {
+    specifications?: Record<string, string>;
+    compatibility?: string[];
+}
+
+const ProductDetailTabs = ({ specifications = {}, compatibility = [] }: ProductDetailTabsProps) => {
     const [activeTab, setActiveTab] = useState('specifications');
 
+    const specList = Object.entries(specifications).map(([label, value]) => ({ label, value }));
+
     return (
-        <div className="bg-white rounded-3xl shadow-soft border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-muted/10 rounded-3xl shadow-soft border border-gray-100 dark:border-muted overflow-hidden transition-colors">
             {/* Tab Headers */}
-            <div className="flex border-b border-gray-100">
+            <div className="flex border-b border-gray-100 dark:border-muted">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
@@ -47,22 +54,33 @@ const ProductDetailTabs = () => {
             <div className="p-8">
                 {activeTab === 'specifications' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                        {specifications.map((spec, idx) => (
-                            <div key={idx} className="flex justify-between items-center border-b border-gray-50 pb-4">
-                                <span className="text-sm font-bold text-gray-400">{spec.label}</span>
-                                <span className="text-sm font-black text-secondary">{spec.value}</span>
+                        {specList.length > 0 ? specList.map((spec, idx) => (
+                            <div key={idx} className="flex justify-between items-center border-b border-gray-50 dark:border-muted/50 pb-4">
+                                <span className="text-sm font-bold text-gray-400 uppercase tracking-tight">{spec.label}</span>
+                                <span className="text-sm font-black text-secondary dark:text-foreground">{spec.value}</span>
                             </div>
-                        ))}
+                        )) : (
+                            <p className="text-sm text-gray-500 font-medium col-span-2 text-center py-4">No detailed specifications available for this part.</p>
+                        )}
                     </div>
                 )}
                 {activeTab === 'compatibility' && (
-                    <div className="text-sm text-gray-500 font-medium">
-                        Compatible with TVS King (200cc) models from 2018-2024.
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium space-y-2">
+                        {compatibility.length > 0 ? (
+                            <ul className="list-disc list-inside space-y-1">
+                                {compatibility.map((item, idx) => (
+                                    <li key={idx} className="uppercase tracking-tight font-bold">{item}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-center py-4 italic">Universal Fit / No specific model compatibility listed.</p>
+                        )}
                     </div>
                 )}
                 {activeTab === 'shipping' && (
-                    <div className="text-sm text-gray-500 font-medium">
-                        Fast global shipping via Air or Sea. Standard delivery: 3-5 business days.
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium text-center py-4">
+                        <p>Fast global shipping via Air or Sea Carriers.</p>
+                        <p className="font-black text-secondary dark:text-foreground mt-2 uppercase tracking-widest text-xs">Standard delivery: 3-5 business days.</p>
                     </div>
                 )}
             </div>

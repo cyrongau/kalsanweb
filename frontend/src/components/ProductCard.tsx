@@ -30,7 +30,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <Link href={`/shop/${product.id}`} className="block w-full h-full">
                     <div
                         className="absolute inset-0 bg-center bg-no-repeat bg-cover transform group-hover:scale-110 transition-transform duration-1000"
-                        style={{ backgroundImage: `url("${normalizeImageUrl(product.image)}")`, backgroundColor: '#f3f4f6' }}
+                        style={{
+                            backgroundImage: `url("${product.image || 'https://placehold.co/400x500/f3f4f6/1d428a?text=No+Image'}")`,
+                            backgroundColor: '#f3f4f6'
+                        }}
                     />
                 </Link>
 

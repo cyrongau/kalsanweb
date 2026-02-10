@@ -36,6 +36,11 @@ export const normalizeImageUrl = (path: string | null | undefined): string => {
         }
     }
 
+    // IDEMPOTENCY CHECK: If it already starts with API_BASE_URL, return it
+    if (API_BASE_URL !== '/' && API_BASE_URL !== '' && relativePath.startsWith(API_BASE_URL)) {
+        return relativePath;
+    }
+
     // If it doesn't start with /uploads or /, it's a filename or needs prefixing
     if (!relativePath.startsWith('/') && !relativePath.startsWith('http')) {
         relativePath = `/uploads/${relativePath}`;
@@ -43,8 +48,10 @@ export const normalizeImageUrl = (path: string | null | undefined): string => {
 
     // Prepend API_BASE_URL if it's relative
     if (relativePath.startsWith('/')) {
-        // If API_BASE_URL is just /api, it's relative to the site root
-        return `${API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL}${relativePath}`;
+        const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+        // Final idempotency check for '/' prefix
+        if (relativePath.startsWith(baseUrl + '/') && baseUrl !== '') return relativePath;
+        return `${baseUrl}${relativePath}`;
     }
 
     return relativePath;
