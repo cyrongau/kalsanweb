@@ -40,7 +40,15 @@ export default function SupportChat() {
 
     // Socket initialization
     useEffect(() => {
-        socketRef.current = io(API_BASE_URL);
+        // Configure socket connection based on API_BASE_URL
+        const socketUrl = API_BASE_URL.startsWith('http') ? API_BASE_URL : undefined;
+        const socketOptions = API_BASE_URL.startsWith('http')
+            ? {}
+            // If API_BASE_URL is relative (e.g. '/api'), use it as the path prefix for socket.io
+            // Nginx will strip '/api' and forward to backend's '/socket.io'
+            : { path: `${API_BASE_URL}/socket.io` };
+
+        socketRef.current = io(socketUrl, socketOptions);
 
         socketRef.current.on('new_message', (message: Message) => {
             setMessages(prev => {

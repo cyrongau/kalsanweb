@@ -1,17 +1,18 @@
 const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        console.log("Config Debug: current hostname is", hostname);
 
-        // If we are on your live domain, ALWAYS use /api
-        if (hostname.includes('generexcom.com')) {
-            console.log("Config: Matches live domain, using /api");
-            return '/api';
+        // If we are on localhost, use the local backend port
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:3001';
         }
+
+        // For ANY other domain (staging, production, ngrok, etc.), use the relative /api path
+        return '/api';
     }
 
-    // Default to localhost for development
-    return 'http://localhost:3001';
+    // Server-side fallback
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 };
 
 export const API_BASE_URL = getBaseUrl();
