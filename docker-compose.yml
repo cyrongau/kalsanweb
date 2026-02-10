@@ -37,11 +37,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://kalsan.generexcom.com/api
+        - NEXT_PUBLIC_API_URL=https://kalsan.generexcom.com
     container_name: kalsan-frontend
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=https://kalsan.generexcom.com/api
+      - NEXT_PUBLIC_API_URL=https://kalsan.generexcom.com
     ports:
       - "3000:3000"
     depends_on:
