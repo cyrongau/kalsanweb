@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Product } from './product.entity';
 
 @Injectable()
 export class ProductsService {
+    private readonly logger = new Logger(ProductsService.name);
+
     constructor(
         @InjectRepository(Product)
         private productsRepository: Repository<Product>,
@@ -74,15 +76,32 @@ export class ProductsService {
     }
 
     async create(data: Partial<Product>): Promise<Product> {
-        const product = this.productsRepository.create(data);
-        return this.productsRepository.save(product);
+        try {
+            // Sanitize data by removing non-entity fields that might come from frontend
+            const { id: _, created_at: __, updated_at: ___, universalFit: ____, ...createData } = data as any;
+
+            this.logger.log(`Creating product with SKU: ${createData.sku}`);
+            const product = this.productsRepository.create(createData as any) as unknown as Product;
+            return await this.productsRepository.save(product);
+        } catch (error) {
+            this.logger.error(`Failed to create product: ${error.message}`, error.stack);
+            throw new InternalServerErrorException(`System error during product creation: ${error.message}`);
+        }
     }
 
     async update(id: string, data: Partial<Product>): Promise<Product> {
-        await this.productsRepository.update(id, data);
-        const updated = await this.findOne(id);
-        if (!updated) throw new Error('Product not found');
-        return updated;
+        try {
+            // Sanitize data
+            const { id: _, created_at: __, updated_at: ___, universalFit: ____, ...updateData } = data as any;
+
+            await this.productsRepository.update(id, updateData as any);
+            const updated = await this.findOne(id);
+            if (!updated) throw new NotFoundException('Product not found');
+            return updated;
+        } catch (error) {
+            this.logger.error(`Failed to update product ${id}: ${error.message}`, error.stack);
+            throw new InternalServerErrorException(`System error during product update: ${error.message}`);
+        }
     }
 
     search(query: string): Promise<Product[]> {
