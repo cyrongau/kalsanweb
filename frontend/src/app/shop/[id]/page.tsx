@@ -7,6 +7,7 @@ import { ChevronRight, Minus, Plus, FileText, CheckCircle2, Globe2, Heart, Loade
 import { cn } from '@/lib/utils';
 import ProductGallery from '@/components/ProductGallery';
 import ProductDetailTabs from '@/components/ProductDetailTabs';
+import SimilarProducts from '@/components/SimilarProducts';
 import InquiredTogether from '@/components/InquiredTogether';
 import { useQuote } from '@/components/providers/QuoteProvider';
 import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
@@ -208,6 +209,11 @@ export default function ProductDetailPage() {
                         specifications={product.specifications}
                         compatibility={product.compatibility}
                     />
+                </div>
+
+                {/* Similar Products Section */}
+                <div className="mb-24">
+                    <SimilarProducts categorySlug={product.category?.slug} currentProductId={product.id} />
                 </div>
 
                 {/* Inquired Together Section */}

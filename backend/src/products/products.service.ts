@@ -64,7 +64,10 @@ export class ProductsService {
     }
 
     findOne(id: string): Promise<Product | null> {
-        return this.productsRepository.findOneBy({ id });
+        return this.productsRepository.findOne({
+            where: { id },
+            relations: ['brand', 'category', 'condition']
+        });
     }
 
     findByBrand(brandId: string): Promise<Product[]> {

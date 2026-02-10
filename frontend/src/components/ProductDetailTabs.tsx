@@ -91,9 +91,21 @@ const ProductDetailTabs = ({ description, specifications = {}, compatibility = [
                     </div>
                 )}
                 {activeTab === 'shipping' && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium text-center py-4">
-                        <p>Fast global shipping via Air or Sea Carriers.</p>
-                        <p className="font-black text-secondary dark:text-foreground mt-2 uppercase tracking-widest text-xs">Standard delivery: 3-5 business days.</p>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium space-y-4 py-4">
+                        <div className="p-4 bg-gray-50 dark:bg-muted/20 rounded-2xl border border-gray-100 dark:border-muted">
+                            <h4 className="text-xs font-black text-secondary dark:text-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <Truck size={14} className="text-primary" />
+                                Regional & Domestic Shipping
+                            </h4>
+                            <p className="leading-relaxed">
+                                We offer swift and reliable delivery services within the country. For regional transport (Ethiopia ↔ Berbera), we partner with trusted couriers like <span className="text-secondary dark:text-white font-bold">Sahal Transport</span> and <span className="text-secondary dark:text-white font-bold">Fudaydiye Logistics</span> to ensure your parts arrive safely and on time.
+                            </p>
+                        </div>
+                        <div className="text-center">
+                            <p className="font-black text-secondary dark:text-foreground mt-2 uppercase tracking-widest text-xs">
+                                Estimated Delivery: 1-3 Business Days (Domestic)
+                            </p>
+                        </div>
                     </div>
                 )}
                 {activeTab === 'reviews' && (
