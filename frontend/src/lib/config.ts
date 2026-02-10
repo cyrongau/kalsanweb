@@ -1,14 +1,16 @@
 const getBaseUrl = () => {
-    // 1. In browser, if we are NOT on localhost, ALWAYS use the relative /api path
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        if (hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '0.0.0.0') {
-            console.log("Config: Production detected, using /api prefix");
+        console.log("Config Debug: current hostname is", hostname);
+
+        // If we are on your live domain, ALWAYS use /api
+        if (hostname.includes('generexcom.com')) {
+            console.log("Config: Matches live domain, using /api");
             return '/api';
         }
     }
 
-    // 2. Fallback for local development or SSR
+    // Default to localhost for development
     return 'http://localhost:3001';
 };
 
