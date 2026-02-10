@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, X, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 import Link from 'next/link';
 
@@ -134,7 +134,7 @@ const SmartSearch = ({ inline = false, shortcutHint }: SmartSearchProps) => {
                                     >
                                         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100 dark:border-slate-800">
                                             {product.image_urls?.[0] ? (
-                                                <img src={product.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                <img src={normalizeImageUrl(product.image_urls[0])} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                             ) : (
                                                 <Package size={20} className="text-gray-400" />
                                             )}
