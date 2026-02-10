@@ -13,21 +13,7 @@ const tabs = [
 
 // ... (inside component render, after 'shipping' tab content)
 
-{
-    activeTab === 'reviews' && (
-        <div className="text-center py-8 space-y-4">
-            <div className="flex justify-center gap-1 text-gray-300">
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} size={24} />
-                ))}
-            </div>
-            <p className="text-sm text-gray-500 font-bold uppercase tracking-wide">No reviews yet for this product.</p>
-            <button className="text-xs font-black text-primary hover:underline uppercase tracking-widest">
-                Be the first to review
-            </button>
-        </div>
-    )
-}
+
 
 const specifications = [
     { label: 'Material', value: 'High-Grade Cast Aluminum' },
