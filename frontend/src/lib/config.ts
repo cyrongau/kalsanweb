@@ -32,7 +32,7 @@ export const normalizeImageUrl = (path: string | null | undefined): string => {
     }
 
     // IDEMPOTENCY CHECK: If it already starts with API_BASE_URL, return it
-    if (API_BASE_URL !== '/' && API_BASE_URL !== '' && relativePath.startsWith(API_BASE_URL)) {
+    if (relativePath.startsWith(API_BASE_URL)) {
         return relativePath;
     }
 
