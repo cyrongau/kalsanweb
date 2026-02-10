@@ -129,10 +129,9 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
 
-                        <div
-                            className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-lg max-w-xl prose dark:prose-invert"
-                            dangerouslySetInnerHTML={{ __html: product.description || "No description available for this product." }}
-                        />
+                        <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-lg max-w-xl">
+                            {product.short_description || "No short description available."}
+                        </p>
 
                         {/* Quote Box */}
                         <div className="bg-white dark:bg-muted/20 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-muted p-10 space-y-8">
@@ -205,6 +204,7 @@ export default function ProductDetailPage() {
                 {/* Tabs Section */}
                 <div className="mb-24 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <ProductDetailTabs
+                        description={product.description}
                         specifications={product.specifications}
                         compatibility={product.compatibility}
                     />

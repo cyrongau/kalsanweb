@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { FileText, Truck, Info, Star } from 'lucide-react';
+import { FileText, Truck, Info, Star, AlignLeft } from 'lucide-react';
 
 const tabs = [
+    { id: 'description', label: 'Description', icon: AlignLeft },
     { id: 'specifications', label: 'Specifications', icon: FileText },
     { id: 'compatibility', label: 'Vehicle Compatibility', icon: Truck },
     { id: 'shipping', label: 'Shipping Info', icon: Info },
@@ -25,12 +26,13 @@ const specifications = [
 ];
 
 interface ProductDetailTabsProps {
+    description?: string;
     specifications?: Record<string, string>;
     compatibility?: string[];
 }
 
-const ProductDetailTabs = ({ specifications = {}, compatibility = [] }: ProductDetailTabsProps) => {
-    const [activeTab, setActiveTab] = useState('specifications');
+const ProductDetailTabs = ({ description, specifications = {}, compatibility = [] }: ProductDetailTabsProps) => {
+    const [activeTab, setActiveTab] = useState('description');
 
     const specList = Object.entries(specifications).map(([label, value]) => ({ label, value }));
 
@@ -57,6 +59,12 @@ const ProductDetailTabs = ({ specifications = {}, compatibility = [] }: ProductD
 
             {/* Tab Content */}
             <div className="p-8">
+                {activeTab === 'description' && (
+                    <div
+                        className="prose dark:prose-invert max-w-none text-gray-500 dark:text-gray-300 [&_*]:!bg-transparent"
+                        dangerouslySetInnerHTML={{ __html: description || "<p>No detailed description available.</p>" }}
+                    />
+                )}
                 {activeTab === 'specifications' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                         {specList.length > 0 ? specList.map((spec, idx) => (

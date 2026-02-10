@@ -17,6 +17,9 @@ export class Product {
     @Column({ nullable: true })
     description: string;
 
+    @Column({ nullable: true })
+    short_description: string;
+
     @ManyToOne(() => Brand, (brand) => brand.products)
     @JoinColumn({ name: 'brand_id' })
     brand: Brand;
