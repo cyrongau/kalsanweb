@@ -8,6 +8,13 @@ import { API_BASE_URL } from '@/lib/config';
 
 import Link from 'next/link';
 
+interface Product {
+    id: string;
+    name: string;
+    sku: string;
+    image_urls: string[];
+}
+
 interface SmartSearchProps {
     inline?: boolean;
     shortcutHint?: React.ReactNode;
