@@ -80,6 +80,11 @@ export class ProductsService {
             // Sanitize data by removing non-entity fields that might come from frontend
             const { id: _, created_at: __, updated_at: ___, universalFit: ____, ...createData } = data as any;
 
+            // Convert empty strings to null for UUID fields to avoid PostgreSQL errors
+            if (createData.condition_id === '') createData.condition_id = null;
+            if (createData.brand_id === '') createData.brand_id = null;
+            if (createData.category_id === '') createData.category_id = null;
+
             this.logger.log(`Creating product with SKU: ${createData.sku}`);
             const product = this.productsRepository.create(createData as any) as unknown as Product;
             return await this.productsRepository.save(product);
@@ -93,6 +98,11 @@ export class ProductsService {
         try {
             // Sanitize data
             const { id: _, created_at: __, updated_at: ___, universalFit: ____, ...updateData } = data as any;
+
+            // Convert empty strings to null for UUID fields
+            if (updateData.condition_id === '') updateData.condition_id = null;
+            if (updateData.brand_id === '') updateData.brand_id = null;
+            if (updateData.category_id === '') updateData.category_id = null;
 
             await this.productsRepository.update(id, updateData as any);
             const updated = await this.findOne(id);
