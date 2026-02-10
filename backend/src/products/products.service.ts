@@ -114,6 +114,16 @@ export class ProductsService {
         }
     }
 
+    async delete(id: string): Promise<void> {
+        try {
+            this.logger.log(`Deleting product: ${id}`);
+            await this.productsRepository.delete(id);
+        } catch (error) {
+            this.logger.error(`Failed to delete product ${id}: ${error.message}`, error.stack);
+            throw new InternalServerErrorException(`System error during product deletion: ${error.message}`);
+        }
+    }
+
     search(query: string): Promise<Product[]> {
         return this.productsRepository.find({
             where: [

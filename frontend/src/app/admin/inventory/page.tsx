@@ -24,17 +24,19 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 interface Product {
     id: string;
     sku: string;
     name: string;
-    brand: string;
-    category: string;
-    price: number;
+    brand: any;
+    category: any;
+    price: any;
     quantity: number;
     stock_status: string;
     image?: string;
+    image_urls?: string[];
 }
 
 const SAMPLE_PRODUCTS: Product[] = [
@@ -67,16 +69,34 @@ const InventoryPage = () => {
     const { showToast, showModal } = useNotification();
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [searchQuery, setSearchQuery] = useState('');
-    const [products, setProducts] = useState(SAMPLE_PRODUCTS);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
-    const handleRefresh = () => {
-        setIsRefreshing(true);
-        setTimeout(() => {
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/products`);
+            if (res.ok) {
+                const data = await res.json();
+                setProducts(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch products", err);
+        } finally {
+            setIsLoading(false);
             setIsRefreshing(false);
-            showToast('Inventory Updated', 'Latest stock levels synchronized with backend.', 'success');
-        }, 1200);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await fetchProducts();
+        showToast('Inventory Updated', 'Latest stock levels synchronized with backend.', 'success');
     };
 
     const handleExportCSV = () => {
@@ -105,9 +125,20 @@ const InventoryPage = () => {
             type: 'warning',
             confirmText: 'Delete Permanently',
             cancelText: 'Cancel',
-            onConfirm: () => {
-                setProducts(prev => prev.filter(p => p.id !== id));
-                showToast('Product Deleted', 'The item has been removed from inventory.', 'success');
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        setProducts(prev => prev.filter(p => p.id !== id));
+                        showToast('Product Deleted', 'The item has been removed from inventory.', 'success');
+                    } else {
+                        throw new Error("Failed to delete product");
+                    }
+                } catch (err) {
+                    showToast('Delete Failed', 'There was an error removing the product.', 'error');
+                }
             }
         });
     };
@@ -173,10 +204,10 @@ const InventoryPage = () => {
 
                 {/* Stat Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <StatCard label="Total Inventory" value="4,821" trend={12} icon={Package} color="bg-primary" />
-                    <StatCard label="In Stock" value="4,210" trend={8} icon={CheckCircle2} color="bg-green-500" />
-                    <StatCard label="Low Stock Items" value="48" trend={-15} icon={AlertCircle} color="bg-amber-500" />
-                    <StatCard label="Out of Stock" value="12" trend={-2} icon={Trash2} color="bg-red-500" />
+                    <StatCard label="Total Inventory" value={products.length.toLocaleString()} trend={0} icon={Package} color="bg-primary" />
+                    <StatCard label="In Stock" value={products.filter(p => p.stock_status === 'in_stock').length.toLocaleString()} trend={0} icon={CheckCircle2} color="bg-green-500" />
+                    <StatCard label="Low Stock Items" value={products.filter(p => p.stock_status === 'low_stock').length.toLocaleString()} trend={0} icon={AlertCircle} color="bg-amber-500" />
+                    <StatCard label="Out of Stock" value={products.filter(p => p.stock_status === 'out_of_stock').length.toLocaleString()} trend={0} icon={Trash2} color="bg-red-500" />
                 </div>
 
                 {/* Filters & Actions */}
@@ -251,15 +282,15 @@ const InventoryPage = () => {
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-6">
                                                     <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 group-hover:scale-105 transition-transform duration-500">
-                                                        <img src={p.image} className="w-full h-full object-cover" alt={p.name} />
+                                                        <img src={normalizeImageUrl(p.image_urls?.[0] || p.image)} className="w-full h-full object-cover" alt={p.name} />
                                                     </div>
                                                     <div className="space-y-1">
                                                         <p className="text-[9px] font-black text-primary uppercase tracking-widest">{p.sku}</p>
                                                         <h4 className="font-black text-secondary dark:text-white text-base tracking-tight">{p.name}</h4>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{p.brand}</span>
+                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{(p as any).brand?.name || p.brand}</span>
                                                             <div className="w-1 h-1 bg-gray-300 rounded-full" />
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{p.category}</span>
+                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{(p as any).category?.name || p.category}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -268,7 +299,7 @@ const InventoryPage = () => {
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between items-end">
                                                         <span className="text-xl font-black text-secondary dark:text-white tabular-nums tracking-tighter">{p.quantity} <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Units</span></span>
-                                                        <span className="text-xs font-bold text-primary tracking-tight">${p.price.toFixed(2)} / ea</span>
+                                                        <span className="text-xs font-bold text-primary tracking-tight">${parseFloat(p.price || 0).toFixed(2)} / ea</span>
                                                     </div>
                                                     <div className="w-full h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                         <div
@@ -290,7 +321,7 @@ const InventoryPage = () => {
                                                 </span>
                                             </td>
                                             <td className="px-8 py-6 font-black text-secondary dark:text-white text-lg tracking-tight tabular-nums">
-                                                ${(p.price * p.quantity).toLocaleString()}
+                                                ${(parseFloat(p.price || 0) * p.quantity).toLocaleString()}
                                             </td>
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center justify-end gap-2">
@@ -319,7 +350,7 @@ const InventoryPage = () => {
                             {filteredProducts.map((p) => (
                                 <div key={p.id} className="bg-gray-50/50 dark:bg-slate-950 rounded-[2rem] border border-gray-100 dark:border-slate-800 p-6 space-y-6 group hover:border-primary/20 transition-all">
                                     <div className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-inner">
-                                        <img src={p.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={p.name} />
+                                        <img src={normalizeImageUrl(p.image_urls?.[0] || p.image)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={p.name} />
                                         <div className="absolute top-4 right-4 group-hover:opacity-100 transition-opacity">
                                             <span className={cn(
                                                 "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest backdrop-blur-md border",
@@ -337,7 +368,7 @@ const InventoryPage = () => {
                                         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-slate-800">
                                             <div>
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</p>
-                                                <p className="text-xl font-black text-secondary dark:text-white tabular-nums tracking-tighter">${p.price.toFixed(2)}</p>
+                                                <p className="text-xl font-black text-secondary dark:text-white tabular-nums tracking-tighter">${parseFloat(p.price || 0).toFixed(2)}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Stock</p>
