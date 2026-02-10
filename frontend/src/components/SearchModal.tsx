@@ -67,11 +67,15 @@ const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
                     </div>
 
                     <div className="relative">
-                        <SmartSearch />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none hidden md:flex items-center gap-1.5 px-2 py-1 rounded bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                            <Command size={10} />
-                            <span>K</span>
-                        </div>
+                        <SmartSearch
+                            inline={true}
+                            shortcutHint={
+                                <div className="pointer-events-none hidden md:flex items-center gap-1.5 px-2 py-1 rounded bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    <Command size={10} />
+                                    <span>K</span>
+                                </div>
+                            }
+                        />
                     </div>
                 </div>
 

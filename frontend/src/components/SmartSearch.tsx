@@ -8,14 +8,12 @@ import { API_BASE_URL } from '@/lib/config';
 
 import Link from 'next/link';
 
-interface Product {
-    id: string;
-    name: string;
-    sku: string;
-    image_urls: string[];
+interface SmartSearchProps {
+    inline?: boolean;
+    shortcutHint?: React.ReactNode;
 }
 
-const SmartSearch = () => {
+const SmartSearch = ({ inline = false, shortcutHint }: SmartSearchProps) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +60,7 @@ const SmartSearch = () => {
         router.push(`/shop/${productId}`);
         setIsOpen(false);
         setQuery('');
+        // Close modal if inline (parent handles close usually, but this ensures state reset)
     };
 
     const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -80,6 +79,7 @@ const SmartSearch = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => query.length >= 2 && setIsOpen(true)}
                     onKeyDown={handleSearchSubmit}
+                    autoFocus={inline}
                     placeholder="Search for parts (name, sku)..."
                     className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-full py-2.5 px-6 pl-11 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none dark:text-white placeholder:text-gray-400"
                 />
@@ -90,19 +90,29 @@ const SmartSearch = () => {
                         <Search size={18} />
                     )}
                 </div>
-                {query && (
-                    <button
-                        onClick={() => setQuery('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary dark:hover:text-white transition-colors"
-                    >
-                        <X size={16} />
-                    </button>
-                )}
+
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    {query ? (
+                        <button
+                            onClick={() => setQuery('')}
+                            className="text-gray-400 hover:text-secondary dark:hover:text-white transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+                    ) : (
+                        shortcutHint
+                    )}
+                </div>
             </div>
 
             {/* Dropdown Results */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div
+                    className={cn(
+                        "bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-300",
+                        inline ? "relative mt-4 shadow-none" : "absolute top-full left-0 right-0 mt-3 shadow-2xl"
+                    )}
+                >
                     <div className="p-2 max-h-[400px] overflow-y-auto custom-scrollbar">
                         {results.length > 0 ? (
                             <>
