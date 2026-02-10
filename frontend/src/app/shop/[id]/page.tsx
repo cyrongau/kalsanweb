@@ -129,9 +129,10 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
 
-                        <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-lg max-w-xl">
-                            {product.description || "No description available for this product."}
-                        </p>
+                        <div
+                            className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-lg max-w-xl prose dark:prose-invert"
+                            dangerouslySetInnerHTML={{ __html: product.description || "No description available for this product." }}
+                        />
 
                         {/* Quote Box */}
                         <div className="bg-white dark:bg-muted/20 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-muted p-10 space-y-8">

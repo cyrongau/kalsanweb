@@ -2,13 +2,32 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { FileText, Truck, Info } from 'lucide-react';
+import { FileText, Truck, Info, Star } from 'lucide-react';
 
 const tabs = [
     { id: 'specifications', label: 'Specifications', icon: FileText },
     { id: 'compatibility', label: 'Vehicle Compatibility', icon: Truck },
     { id: 'shipping', label: 'Shipping Info', icon: Info },
+    { id: 'reviews', label: 'Reviews', icon: Star },
 ];
+
+// ... (inside component render, after 'shipping' tab content)
+
+{
+    activeTab === 'reviews' && (
+        <div className="text-center py-8 space-y-4">
+            <div className="flex justify-center gap-1 text-gray-300">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} size={24} />
+                ))}
+            </div>
+            <p className="text-sm text-gray-500 font-bold uppercase tracking-wide">No reviews yet for this product.</p>
+            <button className="text-xs font-black text-primary hover:underline uppercase tracking-widest">
+                Be the first to review
+            </button>
+        </div>
+    )
+}
 
 const specifications = [
     { label: 'Material', value: 'High-Grade Cast Aluminum' },
@@ -81,6 +100,19 @@ const ProductDetailTabs = ({ specifications = {}, compatibility = [] }: ProductD
                     <div className="text-sm text-gray-500 dark:text-gray-400 font-medium text-center py-4">
                         <p>Fast global shipping via Air or Sea Carriers.</p>
                         <p className="font-black text-secondary dark:text-foreground mt-2 uppercase tracking-widest text-xs">Standard delivery: 3-5 business days.</p>
+                    </div>
+                )}
+                {activeTab === 'reviews' && (
+                    <div className="text-center py-8 space-y-4">
+                        <div className="flex justify-center gap-1 text-gray-300">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Star key={star} size={24} />
+                            ))}
+                        </div>
+                        <p className="text-sm text-gray-500 font-bold uppercase tracking-wide">No reviews yet for this product.</p>
+                        <button className="text-xs font-black text-primary hover:underline uppercase tracking-widest">
+                            Be the first to review
+                        </button>
                     </div>
                 )}
             </div>

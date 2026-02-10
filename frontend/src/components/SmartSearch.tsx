@@ -18,56 +18,19 @@ interface Product {
 interface SmartSearchProps {
     inline?: boolean;
     shortcutHint?: React.ReactNode;
+    onSelect?: () => void;
 }
 
-const SmartSearch = ({ inline = false, shortcutHint }: SmartSearchProps) => {
-    const [query, setQuery] = useState('');
-    const [results, setResults] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
+const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProps) => {
+    // ... existing state ...
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (query.trim().length >= 2) {
-                setIsLoading(true);
-                try {
-                    const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(query)}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setResults(data);
-                        setIsOpen(true);
-                    }
-                } catch (error) {
-                    console.error('Search error:', error);
-                } finally {
-                    setIsLoading(false);
-                }
-            } else {
-                setResults([]);
-                setIsOpen(false);
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [query]);
+    // ... existing useEffects ...
 
     const handleSelectProduct = (productId: string) => {
         router.push(`/shop/${productId}`);
         setIsOpen(false);
         setQuery('');
-        // Close modal if inline (parent handles close usually, but this ensures state reset)
+        if (onSelect) onSelect();
     };
 
     const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
