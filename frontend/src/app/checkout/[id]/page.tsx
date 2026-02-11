@@ -450,7 +450,6 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                 </div>
             </div>
         </div>
-        </div >
     );
 };
 
