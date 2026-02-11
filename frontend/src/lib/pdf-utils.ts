@@ -1,20 +1,42 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
-interface ReceiptItem {
+export interface ReceiptItem {
     name: string;
     qty: number;
     price: number;
+    image?: string;
+    spec?: string;
 }
 
-interface CompanySettings {
+export interface CompanySettings {
     tagline?: string;
     contactAddress: string;
     contactEmail: string;
     contactPhone: string;
+    logoLight?: string;
+    logoDark?: string;
+    siteIcon?: string;
+    siteTitle?: string;
 }
 
-export const generateReceiptPDF = (
+const getBase64FromUrl = async (url: string): Promise<string> => {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        console.warn("Failed to load image for PDF", e);
+        return "";
+    }
+};
+
+export const generateReceiptPDF = async (
     orderId: string,
     items: ReceiptItem[],
     settings: CompanySettings,
@@ -24,60 +46,121 @@ export const generateReceiptPDF = (
 ) => {
     const doc = new jsPDF() as any;
 
-    // Background Graphic Elements
-    doc.setFillColor(29, 66, 138); // Primary Color
-    doc.rect(0, 0, 210, 15, 'F'); // Top bar
+    // Load logo
+    const logoUrl = settings.logoLight || settings.logoDark || settings.siteIcon;
+    let logoBase64 = "";
+    let logoWidth = 0;
+    let logoHeight = 0;
 
-    // Brand & Header
-    doc.setFontSize(24);
-    doc.setTextColor(29, 66, 138);
-    doc.setFont("helvetica", "bold");
-    doc.text("KALSAN AUTO", 20, 35);
-
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.text("SPARE PARTS", 20, 40);
-
-    // Official Title
-    doc.setFontSize(18);
-    doc.setTextColor(50, 50, 50);
-    doc.setFont("helvetica", "bold");
-    doc.text("OFFICIAL INVOICE", 190, 35, { align: "right" });
-
-    doc.setFontSize(9);
-    doc.setTextColor(130, 130, 130);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Invoice No: #${orderId.split('-')[0].toUpperCase()}`, 190, 42, { align: "right" });
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 190, 47, { align: "right" });
-
-    // Horizontal Line
-    doc.setDrawColor(230, 230, 230);
-    doc.line(20, 55, 190, 55);
-
-    // Two Column Layout for Addresses
-    doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    doc.text("FROM:", 20, 65);
-    doc.text("BILL TO:", 105, 65);
-
-    doc.setTextColor(50, 50, 50);
-    doc.setFont("helvetica", "bold");
-    doc.text("Kalsan Auto Parts", 20, 71);
-    doc.text(customerInfo?.name || "Valued Customer", 105, 71);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(settings.contactAddress, 20, 77);
-    doc.text(customerInfo?.email || "N/A", 105, 77);
-    doc.text(`Email: ${settings.contactEmail}`, 20, 83);
-    if (shippingAddress) {
-        doc.text(shippingAddress, 105, 83, { maxWidth: 80 });
+    if (logoUrl) {
+        logoBase64 = await getBase64FromUrl(logoUrl);
+        if (logoBase64) {
+            try {
+                const imgProps = doc.getImageProperties(logoBase64);
+                const maxHeight = 25; // Max height in mm
+                const ratio = imgProps.width / imgProps.height;
+                logoHeight = maxHeight;
+                logoWidth = maxHeight * ratio;
+            } catch (e) {
+                console.warn("Failed to get image properties", e);
+                // Fallback dimensions if properties fail
+                logoWidth = 25;
+                logoHeight = 25;
+            }
+        }
     }
 
-    doc.text(`Phone: ${settings.contactPhone}`, 20, 89);
+    // Colors
+    const primaryColor: [number, number, number] = [29, 66, 138]; // #1d428a
+    const secondaryColor: [number, number, number] = [100, 116, 139]; // Slate 500
 
-    // Items Table
-    const tableColumn = ["Item Description", "Qty", "Unit Price", "Total"];
+    // Header Background
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, 210, 50, 'F');
+
+    // Logo & Brand
+    if (logoBase64) {
+        try {
+            // Logo at top left
+            doc.addImage(logoBase64, 'PNG', 15, 10, logoWidth, logoHeight, undefined, 'FAST');
+
+            // Slogan below logo (aligned left with logo margin)
+            doc.setFontSize(10);
+            doc.setTextColor(...secondaryColor);
+            doc.setFont("helvetica", "normal");
+            doc.text(settings.tagline || "GENUINE SPARE PARTS", 15, 10 + logoHeight + 5);
+        } catch (e) {
+            console.error("Error adding logo to PDF:", e);
+            // Fallback text if logo fails
+            doc.setFontSize(24);
+            doc.setTextColor(...primaryColor);
+            doc.setFont("helvetica", "bold");
+            doc.text(settings.siteTitle || "KALSAN AUTO", 15, 25);
+        }
+    } else {
+        doc.setFontSize(24);
+        doc.setTextColor(...primaryColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(settings.siteTitle || "KALSAN AUTO", 15, 25);
+    }
+
+    // Invoice Details (Right aligned)
+    doc.setFontSize(10);
+    doc.setTextColor(...secondaryColor);
+    doc.text("INVOICE NO", 195, 20, { align: "right" });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`#${orderId.split('-')[0].toUpperCase()}`, 195, 26, { align: "right" });
+
+    doc.setFontSize(10);
+    doc.setTextColor(...secondaryColor);
+    doc.text("DATE", 195, 34, { align: "right" });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(new Date().toLocaleDateString(), 195, 40, { align: "right" });
+
+    let yPos = 65;
+
+    // Contact Info Section
+    doc.setFontSize(10);
+    doc.setTextColor(...secondaryColor);
+    doc.text("FROM:", 15, yPos);
+    doc.text("BILL TO:", 110, yPos);
+
+    yPos += 6;
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.text(settings.siteTitle || "Kalsan Auto Spares", 15, yPos);
+
+    if (customerInfo?.name) {
+        doc.text(customerInfo.name, 110, yPos);
+    }
+
+    yPos += 5;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(50, 50, 50);
+
+    // Address splitting for wrapping
+    const addressLines = doc.splitTextToSize(settings.contactAddress, 70);
+    doc.text(addressLines, 15, yPos);
+
+    if (shippingAddress) {
+        const shippingLines = doc.splitTextToSize(shippingAddress, 80);
+        doc.text(shippingLines, 110, yPos);
+    }
+
+    yPos += (addressLines.length * 5) + 2;
+    doc.text(settings.contactEmail, 15, yPos);
+    if (customerInfo?.email) doc.text(customerInfo.email, 110, yPos);
+
+    yPos += 5;
+    doc.text(settings.contactPhone, 15, yPos);
+
+    yPos += 15;
+
+    // Table
     const tableRows = items.map(item => [
         item.name,
         item.qty.toString(),
@@ -85,57 +168,46 @@ export const generateReceiptPDF = (
         `$${(item.qty * Number(item.price || 0)).toFixed(2)}`
     ]);
 
-    doc.autoTable({
-        head: [tableColumn],
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Item Description', 'Qty', 'Price', 'Total']],
         body: tableRows,
-        startY: 105,
-        theme: 'striped',
+        theme: 'grid',
         headStyles: {
-            fillColor: [29, 66, 138],
-            textColor: 255,
+            fillColor: primaryColor,
+            textColor: [255, 255, 255],
             fontStyle: 'bold',
-            fontSize: 10,
-            halign: 'center'
+            halign: 'left' // Explicitly align left
         },
         columnStyles: {
-            0: { halign: 'left' },
-            1: { halign: 'center' },
-            2: { halign: 'right' },
-            3: { halign: 'right' }
+            0: { cellWidth: 90 },
+            1: { cellWidth: 20, halign: 'center' },
+            2: { cellWidth: 35, halign: 'right' },
+            3: { cellWidth: 35, halign: 'right' }
         },
-        alternateRowStyles: { fillColor: [250, 250, 250] },
-        margin: { left: 20, right: 20 }
+        styles: {
+            fontSize: 10,
+            cellPadding: 3
+        },
+        didDrawPage: (data) => {
+            // Footer?
+        }
     });
 
-    // Calculations
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
     const subtotal = items.reduce((acc, item) => acc + (item.qty * Number(item.price || 0)), 0);
-    const tax = subtotal * 0.05;
+    const tax = 0; // Assuming tax inclusive or not handled
     const total = subtotal + tax;
 
-    // Summary
-    const finalY = doc.lastAutoTable.finalY + 15;
-
-    // Payment Method Box
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(20, finalY - 5, 80, 25, 3, 3, 'F');
-    doc.setFont("helvetica", "bold");
-    doc.text("Payment Information", 25, finalY + 5);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Method: ${paymentMethod.toUpperCase()}`, 25, finalY + 12);
-    doc.text(`Status: PAID`, 25, finalY + 17);
-
-    // Totals Section
     doc.setFontSize(10);
-    doc.text("Subtotal:", 140, finalY);
-    doc.text(`$${subtotal.toFixed(2)}`, 190, finalY, { align: "right" });
+    doc.setTextColor(...secondaryColor);
+    doc.text("SUBTOTAL", 150, finalY);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`$${subtotal.toFixed(2)}`, 195, finalY, { align: "right" });
 
-    doc.text("Sales Tax (5%):", 140, finalY + 8);
-    doc.text(`$${tax.toFixed(2)}`, 190, finalY + 8, { align: "right" });
-
-    doc.setDrawColor(29, 66, 138);
-    doc.setLineWidth(0.5);
-    doc.line(140, finalY + 13, 190, finalY + 13);
-
+    doc.setTextColor(...secondaryColor);
+    doc.text("TOTAL DUE", 150, finalY + 10);
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(29, 66, 138);

@@ -3,6 +3,7 @@ import { Quote } from '../quotes/quote.entity';
 import { User } from '../users/user.entity';
 
 export enum OrderStatus {
+    PENDING = 'pending',
     PAID = 'paid',
     PROCESSING = 'processing',
     SHIPPED = 'shipped',
@@ -24,13 +25,19 @@ export class Order {
     @Column()
     payment_intent_id: string;
 
+    @Column({ nullable: true })
+    payment_method: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    shipping_address: any;
+
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     total_paid: number;
 
     @Column({
         type: 'enum',
         enum: OrderStatus,
-        default: OrderStatus.PAID,
+        default: OrderStatus.PENDING,
     })
     status: OrderStatus;
 

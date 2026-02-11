@@ -11,13 +11,14 @@ import {
     MapPin,
     CreditCard,
     ShoppingCart,
-    Search
+    Search,
+    X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateReceiptPDF } from '@/lib/pdf-utils';
 import { useAdmin } from '@/components/providers/AdminProvider';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { useQuote, Product } from '@/components/providers/QuoteProvider';
 
 const OrderTrackerStep = ({ label, description, time, status }: { label: string; description: string; time?: string; status: 'completed' | 'active' | 'pending' }) => {
     const isCompleted = status === 'completed';
@@ -52,28 +53,165 @@ const OrderTrackerStep = ({ label, description, time, status }: { label: string;
 const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: string }> }) => {
     const params = React.use(paramsPromise);
     const { settings } = useAdmin();
-    const orderId = params.id || "KLSN-9823-XQ";
+    const orderId = params.id;
+    const [order, setOrder] = React.useState<any | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const { user } = useAuth(); // Assuming useAuth is available or we user useAdmin context if it has fetching generic logic, but standard fetch matches
 
-    const orderItems = [
-        { name: "Premium Ceramic Brake Pads (Front)", sku: "PART #KLS-BP-001 | QTY: 1", price: 84.99, image: "https://images.unsplash.com/photo-1635773107344-93e11749876a?auto=format&fit=crop&q=80&w=200" },
-        { name: "High Performance Oil Filter", sku: "PART #KLS-OF-055 | QTY: 2", price: 25.98, oldPrice: 42.98, image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200" }
-    ];
+    // We need api url
+    const API_URL = 'http://localhost:3001'; // Should use config but hardcoding for consistent pattern in this file or use process.env.NEXT_PUBLIC_API_URL
 
-    const recommendedItems = [
-        { name: "Pro-Series Brake Cleaner Spray", tag: "RECOMMENDED", price: "$8.50", image: "https://images.unsplash.com/photo-1635773107344-93e11749876a?auto=format&fit=crop&q=80&w=200" },
-        { name: "Full Synthetic Engine Oil 5W...", tag: "ESSENTIALS", price: "$34.99", image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=200" },
-        { name: "Heavy Duty Shop Towels (Roll)", tag: "ADD-ON", price: "$4.25", image: "https://images.unsplash.com/photo-1577705998148-ebad79568a2c?auto=format&fit=crop&q=80&w=200" },
-        { name: "Professional Lubrication Kit", tag: "TOOLS", price: "$22.95", image: "https://images.unsplash.com/photo-1517520287167-4bda64282b54?auto=format&fit=crop&q=80&w=200" },
-    ];
+    const [recommendedItems, setRecommendedItems] = React.useState<any[]>([]);
 
-    const handleDownloadInvoice = () => {
-        const receiptItems = orderItems.map(item => ({ name: item.name, qty: 1, price: item.price }));
-        generateReceiptPDF(orderId, receiptItems, settings, "Visa ending in 4492");
+    React.useEffect(() => {
+        const fetchRecommended = async () => {
+            try {
+                // Fetch products (limit 20 to get a pool to choose from)
+                const res = await fetch(`${API_URL}/products?limit=20`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const products = data.items || data; // Handle pagination structure or array
+                    if (Array.isArray(products)) {
+                        // Shuffle and pick 4
+                        const shuffled = products.sort(() => 0.5 - Math.random());
+                        const selected = shuffled.slice(0, 4).map((p: any) => {
+                            let imgUrl = "https://images.unsplash.com/photo-1635773107344-93e11749876a?auto=format&fit=crop&q=80&w=200";
+                            if (p.image_urls && p.image_urls.length > 0) {
+                                const url = p.image_urls[0];
+                                imgUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+                            }
+                            return {
+                                name: p.name,
+                                tag: p.category?.name?.toUpperCase() || "RECOMMENDED", // Use category as tag
+                                price: `$${Number(p.price).toFixed(2)}`,
+                                image: imgUrl
+                            };
+                        });
+                        setRecommendedItems(selected);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch recommendations", error);
+            }
+        };
+        fetchRecommended();
+    }, []);
+
+    React.useEffect(() => {
+        const fetchOrder = async () => {
+            if (!orderId) return;
+            try {
+                const response = await fetch(`${API_URL}/orders/${orderId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setOrder(data);
+                } else {
+                    console.error('Failed to fetch order');
+                }
+            } catch (error) {
+                console.error('Error fetching order:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrder();
+    }, [orderId]);
+
+    const { addToQuote, clearQuote } = useQuote();
+    const [showQuoteDialog, setShowQuoteDialog] = React.useState(false);
+    const [pendingItem, setPendingItem] = React.useState<Product | null>(null);
+    const [hasAskedQuote, setHasAskedQuote] = React.useState(false);
+
+    const handleAddToQuoteClick = (item: any) => {
+        const product: Product = {
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            category: item.tag
+        };
+
+        if (hasAskedQuote) {
+            addToQuote(product);
+        } else {
+            setPendingItem(product);
+            setShowQuoteDialog(true);
+        }
     };
+
+    const confirmNewQuote = () => {
+        clearQuote();
+        if (pendingItem) addToQuote(pendingItem);
+        setHasAskedQuote(true);
+        setShowQuoteDialog(false);
+        setPendingItem(null);
+    };
+
+    const confirmAddToExisting = () => {
+        if (pendingItem) addToQuote(pendingItem);
+        setHasAskedQuote(true);
+        setShowQuoteDialog(false);
+        setPendingItem(null);
+    };
+
+    const handleDownloadInvoice = async () => {
+        if (!order) return;
+        const receiptItems = order.quote.items.map((item: any) => ({
+            name: item.product.name,
+            qty: item.quantity,
+            price: Number(item.unit_price || 0)
+        }));
+        await generateReceiptPDF(orderId, receiptItems, settings, "Visa ending in 4492");
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#030712] flex flex-col">
+                {/* Navbar removed */}
+                <main className="flex-1 py-16 flex items-center justify-center">
+                    <div className="animate-pulse text-xl font-bold text-gray-400">Loading order details...</div>
+                </main>
+                {/* Footer removed */}
+            </div>
+        );
+    }
+
+    if (!order) {
+        return (
+            <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#030712] flex flex-col">
+                {/* Navbar removed */}
+                <main className="flex-1 py-16 flex flex-col items-center justify-center gap-4">
+                    <div className="text-xl font-bold text-red-500">Order not found</div>
+                    <Link href="/" className="btn-primary px-6 py-3 rounded-xl">Back to Home</Link>
+                </main>
+                {/* Footer removed */}
+            </div>
+        );
+    }
+
+    // Map order items from the fetched data
+    const orderItems = order.quote.items.map((item: any) => {
+        let imageUrl = "https://images.unsplash.com/photo-1635773107344-93e11749876a?auto=format&fit=crop&q=80&w=200";
+        if (item.product.image_urls && item.product.image_urls.length > 0) {
+            const url = item.product.image_urls[0];
+            imageUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+        }
+
+        return {
+            name: item.product.name,
+            sku: item.product.sku || 'N/A',
+            price: Number(item.unit_price || 0),
+            image: imageUrl,
+            quantity: item.quantity
+        };
+    });
+
+
 
     return (
         <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#030712] flex flex-col">
-            <Navbar />
+            {/* Navbar removed to prevent duplication with layout */}
 
             <main className="flex-1 py-16">
                 <div className="container mx-auto px-4 max-w-6xl space-y-12">
@@ -101,11 +239,11 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                             <div className="flex gap-12">
                                 <div className="text-center">
                                     <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Order Date</div>
-                                    <div className="text-base font-black text-secondary dark:text-white text-nowrap">Oct 24, 2023</div>
+                                    <div className="text-base font-black text-secondary dark:text-white text-nowrap">{new Date(order.created_at).toLocaleDateString()}</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Est. Delivery</div>
-                                    <div className="text-base font-black text-primary text-nowrap">Oct 27 - 28, 2023</div>
+                                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Amount</div>
+                                    <div className="text-base font-black text-primary text-nowrap">${Number(order.total_paid).toLocaleString()}</div>
                                 </div>
                             </div>
                         </div>
@@ -113,12 +251,41 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                         {/* Tracker */}
                         <div className="relative flex items-center justify-between px-8">
                             <div className="absolute top-7 left-[15%] right-[15%] h-[2px] bg-gray-100 dark:bg-slate-800 -z-0">
-                                <div className="h-full bg-primary w-[33%]" />
+                                <div className={cn("h-full bg-primary transition-all duration-1000",
+                                    order.status === 'delivered' ? "w-[100%]" :
+                                        order.status === 'shipped' ? "w-[66%]" :
+                                            order.status === 'processing' ? "w-[33%]" :
+                                                "w-[0%]"
+                                )} />
                             </div>
-                            <OrderTrackerStep label="Confirmed" description="Oct 24, 10:00 AM" status="completed" />
-                            <OrderTrackerStep label="Processing" description="In Progress" status="active" />
-                            <OrderTrackerStep label="Shipped" description="Pending" status="pending" />
-                            <OrderTrackerStep label="Delivered" description="Estimated Friday" status="pending" />
+                            <OrderTrackerStep
+                                label="Confirmed"
+                                description={new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                status="completed"
+                            />
+                            <OrderTrackerStep
+                                label="Processing"
+                                description="In Progress"
+                                status={
+                                    ['shipped', 'delivered'].includes(order.status) ? 'completed' :
+                                        order.status === 'processing' ? 'active' : 'pending'
+                                }
+                            />
+                            <OrderTrackerStep
+                                label="Shipped"
+                                description={order.tracking_number || "Pending"}
+                                status={
+                                    order.status === 'delivered' ? 'completed' :
+                                        order.status === 'shipped' ? 'active' : 'pending'
+                                }
+                            />
+                            <OrderTrackerStep
+                                label="Delivered"
+                                description="Estimated soon"
+                                status={
+                                    order.status === 'delivered' ? 'completed' : 'pending'
+                                }
+                            />
                         </div>
                     </div>
 
@@ -131,7 +298,7 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                                     Items in your package
                                 </h3>
                                 <div className="space-y-10">
-                                    {orderItems.map((item, idx) => (
+                                    {orderItems.map((item: any, idx: number) => (
                                         <div key={idx} className="flex items-center justify-between group">
                                             <div className="flex items-center gap-6">
                                                 <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-500">
@@ -140,11 +307,11 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                                                 <div className="space-y-1">
                                                     <div className="text-sm font-black text-secondary dark:text-white tracking-tight leading-tight">{item.name}</div>
                                                     <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.sku}</div>
+                                                    <div className="text-[10px] font-bold text-primary uppercase tracking-widest">Qty: {item.quantity}</div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-base font-black text-secondary dark:text-white">${item.price}</div>
-                                                {item.oldPrice && <div className="text-[10px] text-gray-300 font-bold line-through">${item.oldPrice}</div>}
+                                                <div className="text-base font-black text-secondary dark:text-white">${item.price.toFixed(2)}</div>
                                             </div>
                                         </div>
                                     ))}
@@ -152,7 +319,7 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                                 <div className="mt-12 pt-8 border-t border-dotted border-gray-200 dark:border-slate-800 space-y-4">
                                     <div className="flex justify-between items-center text-xs font-bold font-mono">
                                         <span className="text-gray-400 uppercase tracking-widest text-[10px]">Subtotal</span>
-                                        <span className="text-secondary dark:text-white">$110.97</span>
+                                        <span className="text-secondary dark:text-white">${Number(order.total_paid).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-xs font-bold font-mono">
                                         <span className="text-gray-400 uppercase tracking-widest text-[10px]">Shipping</span>
@@ -160,7 +327,7 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                                     </div>
                                     <div className="pt-4 flex justify-between items-center">
                                         <span className="text-base font-black text-secondary dark:text-white uppercase tracking-widest">Total</span>
-                                        <span className="text-2xl font-black text-primary">$110.97</span>
+                                        <span className="text-2xl font-black text-primary">${Number(order.total_paid).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -170,35 +337,34 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                             {/* Address Side Card */}
                             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-sm border border-gray-100 dark:border-slate-800 space-y-6">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Shipping Address</h3>
+                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Customer Details</h3>
                                     <MapPin size={16} className="text-primary" />
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-sm font-black text-secondary dark:text-white">James Sterling</div>
+                                    <div className="text-sm font-black text-secondary dark:text-white">{order.user?.name || "Customer"}</div>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                                        1245 Industrial Way, Suite 400<br />
-                                        Automotive District<br />
-                                        Detroit, MI 48201
+                                        {order.user?.email}<br />
+                                        {order.quote?.guest_phone || "No phone provided"}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Payment Side Card */}
                             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-sm border border-gray-100 dark:border-slate-800 space-y-6">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Payment Method</h3>
+                                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Payment Info</h3>
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-8 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg flex items-center justify-center">
-                                        <div className="w-8 h-4 bg-primary/10 rounded flex items-center justify-center text-[8px] font-black text-primary">VISA</div>
+                                        <div className="w-8 h-4 bg-primary/10 rounded flex items-center justify-center text-[8px] font-black text-primary">CARD</div>
                                     </div>
                                     <div className="space-y-0.5">
-                                        <div className="text-xs font-black text-secondary dark:text-white uppercase tracking-tight">Visa ending in 4492</div>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Exp: 09/26</p>
+                                        <div className="text-xs font-black text-secondary dark:text-white uppercase tracking-tight">Paid via Card</div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ref: ...{order.payment_intent_id?.slice(-4) || "0000"}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="space-y-4">
+                            <div className="flex flex-col gap-8">
                                 <Link href="/shop">
                                     <button className="w-full bg-primary hover:bg-primary-dark text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 flex items-center justify-center gap-2 group transition-all shrink-0">
                                         <ShoppingCart size={18} className="transition-transform group-hover:scale-110" />
@@ -234,7 +400,13 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                                     <div className="space-y-3">
                                         <div className="text-[9px] font-black text-primary uppercase tracking-widest">{item.tag}</div>
                                         <h4 className="text-xs font-black text-secondary dark:text-white tracking-tight line-clamp-2 leading-tight">{item.name}</h4>
-                                        <div className="text-sm font-black text-secondary dark:text-white">{item.price}</div>
+                                        <button
+                                            onClick={() => handleAddToQuoteClick(item)}
+                                            className="w-full py-2 bg-gray-50 dark:bg-slate-800 hover:bg-primary hover:text-white text-secondary dark:text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/btn"
+                                        >
+                                            <ShoppingCart size={12} className="group-hover/btn:scale-110 transition-transform" />
+                                            Add to Quote
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -243,7 +415,46 @@ const OrderSuccessPage = ({ params: paramsPromise }: { params: Promise<{ id: str
                 </div>
             </main>
 
-            <Footer />
+            {/* Quote Confirmation Dialog */}
+            {showQuoteDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800 relative">
+                        <button
+                            onClick={() => setShowQuoteDialog(false)}
+                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="space-y-6 text-center">
+                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto text-primary">
+                                <ShoppingCart size={32} />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-black text-secondary dark:text-white tracking-tight">Start New Quote?</h3>
+                                <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                                    Do you want to create a new quote request or add this item to your existing session?
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={confirmNewQuote}
+                                    className="py-3 px-4 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20"
+                                >
+                                    Create New
+                                </button>
+                                <button
+                                    onClick={confirmAddToExisting}
+                                    className="py-3 px-4 bg-gray-100 dark:bg-slate-800 text-secondary dark:text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    Add to Current
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };

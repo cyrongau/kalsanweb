@@ -29,7 +29,7 @@ const OrdersPage = () => {
     const handleExportCSV = () => {
         const headers = 'Order ID,Customer,Total,Status,Date\n';
         const csvContent = orders.map(o =>
-            `${o.id},${o.user?.displayName},${o.total_paid},${o.status},${o.created_at}`
+            `${o.id},${o.user?.name},${o.total_paid},${o.status},${o.created_at}`
         ).join('\n');
 
         const blob = new Blob([headers + csvContent], { type: 'text/csv' });
@@ -64,7 +64,7 @@ const OrdersPage = () => {
     }, []);
 
     const filteredOrders = orders.filter(o => {
-        const matchesSearch = (o.user?.displayName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = (o.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             o.id.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesStatus = statusFilter === 'All' || o.status.toLowerCase() === statusFilter.toLowerCase();
@@ -167,7 +167,7 @@ const OrdersPage = () => {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-secondary dark:text-white">{order.user?.displayName || 'Guest'}</span>
+                                                <span className="text-sm font-bold text-secondary dark:text-white">{order.user?.name || 'Guest'}</span>
                                                 <span className="text-[10px] text-gray-400 font-medium">{order.user?.email || 'No Email'}</span>
                                             </div>
                                         </td>

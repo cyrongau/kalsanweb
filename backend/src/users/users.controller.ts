@@ -22,4 +22,16 @@ export class UsersController {
     update(@Param('id') id: string, @Body() data: Partial<User>) {
         return this.usersService.update(id, data);
     }
+
+    @Get(':id/vehicles/extract')
+    @UseGuards(JwtAuthGuard)
+    async extractVehicles(@Param('id') id: string) {
+        return this.usersService.extractVehiclesFromOrders(id);
+    }
+
+    @Put(':id/vehicles')
+    @UseGuards(JwtAuthGuard)
+    async updateVehicles(@Param('id') id: string, @Body() body: { vehicles: any[] }) {
+        return this.usersService.update(id, { garage_details: body.vehicles });
+    }
 }

@@ -6,7 +6,6 @@ import {
     Search,
     Filter,
     Download,
-    MoreHorizontal,
     Eye,
     CheckCircle2,
     Clock,
@@ -20,6 +19,7 @@ import Link from 'next/link';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
 import { API_BASE_URL } from '@/lib/config';
+import ConfirmationModal from '@/components/admin/ConfirmationModal';
 
 const QuotesPage = () => {
     const { showToast } = useNotification();
@@ -28,13 +28,13 @@ const QuotesPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
-    const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
 
     const handleExportCSV = () => {
         const headers = 'Quote ID,Customer,Email,Part Requested,Amount,Status,Date\n';
         const csvContent = quotes.map(q =>
-            `${q.id},${q.user?.displayName},${q.user?.email},${q.items?.[0]?.product?.name},${q.total_amount},${q.status},${q.created_at}`
+            `${q.id},${q.user?.name},${q.user?.email},${q.items?.[0]?.product?.name},${q.total_amount},${q.status},${q.created_at}`
         ).join('\n');
 
         const blob = new Blob([headers + csvContent], { type: 'text/csv' });
@@ -64,26 +64,37 @@ const QuotesPage = () => {
         }
     };
 
-    const handleDelete = async (id: string, e: React.MouseEvent) => {
+    const handleDelete = (id: string, e: React.MouseEvent) => {
+        console.log("Delete button clicked for ID:", id);
         e.stopPropagation();
-        if (!confirm('Are you sure you want to delete this quote? This action cannot be undone.')) return;
+        e.preventDefault(); // Adding verify prevention
+        setQuoteToDelete(id);
+        setDeleteModalOpen(true);
+        console.log("Modal state set to true");
+    };
+
+    const confirmDelete = async () => {
+        console.log("Confirm delete triggered for:", quoteToDelete);
+        if (!quoteToDelete) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/quotes/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/quotes/${quoteToDelete}`, {
                 method: 'DELETE'
             });
 
             if (res.ok) {
                 showToast('Success', 'Quote deleted successfully', 'success');
-                setQuotes(prev => prev.filter(q => q.id !== id));
+                setQuotes(prev => prev.filter(q => q.id !== quoteToDelete));
             } else {
                 showToast('Error', 'Failed to delete quote', 'error');
             }
         } catch (error) {
             console.error("Failed to delete quote:", error);
             showToast('Error', 'Failed to delete quote', 'error');
+        } finally {
+            setDeleteModalOpen(false);
+            setQuoteToDelete(null);
         }
-        setActionMenuOpen(null);
     };
 
     useEffect(() => {
@@ -91,7 +102,7 @@ const QuotesPage = () => {
     }, []);
 
     const filteredQuotes = quotes.filter(q => {
-        const matchesSearch = (q.user?.displayName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = (q.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             q.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
             q.items?.some((item: any) => item.product?.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -199,7 +210,7 @@ const QuotesPage = () => {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-secondary dark:text-white">{quote.user?.displayName || 'Guest'}</span>
+                                                <span className="text-sm font-bold text-secondary dark:text-white">{quote.user?.name || 'Guest'}</span>
                                                 <span className="text-[10px] text-gray-400 font-medium">{quote.user?.email || 'No Email'}</span>
                                             </div>
                                         </td>
@@ -242,35 +253,12 @@ const QuotesPage = () => {
                                                 >
                                                     <Eye size={18} className="group-hover/btn:scale-110 transition-transform" />
                                                 </Link>
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            const rect = e.currentTarget.getBoundingClientRect();
-                                                            setMenuPosition({
-                                                                top: rect.bottom + 8,
-                                                                right: window.innerWidth - rect.right
-                                                            });
-                                                            setActionMenuOpen(actionMenuOpen === quote.id ? null : quote.id);
-                                                        }}
-                                                        className={cn(
-                                                            "w-8 h-8 flex items-center justify-center rounded-xl transition-all",
-                                                            actionMenuOpen === quote.id
-                                                                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                                                : "bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-secondary dark:hover:text-white"
-                                                        )}
-                                                    >
-                                                        <MoreHorizontal size={18} />
-                                                    </button>
-                                                </div>
-
-                                                {/* Overlay to close menu */}
-                                                {actionMenuOpen && (
-                                                    <div
-                                                        className="fixed inset-0 z-40 bg-transparent"
-                                                        onClick={() => setActionMenuOpen(null)}
-                                                    />
-                                                )}
+                                                <button
+                                                    onClick={(e) => handleDelete(quote.id, e)}
+                                                    className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-xl transition-all group/btn"
+                                                >
+                                                    <Trash2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -293,40 +281,19 @@ const QuotesPage = () => {
             </div>
 
 
-            {/* Portal-like Fixed Menu */}
-            {
-                actionMenuOpen && menuPosition && (
-                    <>
-                        <div
-                            className="fixed inset-0 z-[998]"
-                            onClick={() => setActionMenuOpen(null)}
-                        />
-                        <div
-                            className="fixed z-[999] w-48 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
-                            style={{
-                                top: `${menuPosition.top}px`,
-                                right: `${menuPosition.right}px`
-                            }}
-                        >
-                            <Link
-                                href={`/admin/quotes/${actionMenuOpen}`}
-                                className="px-4 py-3 text-left text-xs font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary flex items-center gap-3 transition-colors"
-                            >
-                                <Eye size={16} />
-                                View Details
-                            </Link>
-                            <button
-                                onClick={(e) => handleDelete(actionMenuOpen, e)}
-                                className="px-4 py-3 text-left text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-3 w-full transition-colors"
-                            >
-                                <Trash2 size={16} />
-                                Delete Quote
-                            </button>
-                        </div>
-                    </>
-                )
-            }
-        </AdminLayout >
+
+            {/* Actions */}
+
+
+
+            <ConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Quote"
+                message="Are you sure you want to delete this quote? This action cannot be undone."
+            />
+        </AdminLayout>
     );
 };
 

@@ -12,7 +12,55 @@ import { Camera, ChevronDown, Plus, Save, FileText, ShoppingBag, Bookmark, Setti
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useQuote } from '@/components/providers/QuoteProvider';
 import ProductCard from '@/components/ProductCard';
+import VehicleSection from '@/components/VehicleSection';
 import { API_BASE_URL } from '@/lib/config';
+
+interface ListSearchFilterProps {
+    placeholder: string;
+    statuses: string[];
+    searchQuery: string;
+    onSearchChange: (value: string) => void;
+    statusFilter: string;
+    onStatusChange: (value: string) => void;
+}
+
+const ListSearchFilter = ({
+    placeholder,
+    statuses,
+    searchQuery,
+    onSearchChange,
+    statusFilter,
+    onStatusChange
+}: ListSearchFilterProps) => (
+    <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1 group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
+            <input
+                type="text"
+                placeholder={placeholder}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full bg-gray-50/50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:text-white"
+            />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+            {['All', ...statuses].map((status) => (
+                <button
+                    key={status}
+                    onClick={() => onStatusChange(status)}
+                    className={cn(
+                        "px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
+                        statusFilter === status
+                            ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
+                            : "bg-white dark:bg-slate-900 text-gray-400 border-gray-100 dark:border-slate-800 hover:border-primary/20"
+                    )}
+                >
+                    {status}
+                </button>
+            ))}
+        </div>
+    </div>
+);
 
 interface Address {
     type: string;
@@ -20,6 +68,112 @@ interface Address {
     address: string;
     isDefault: boolean;
 }
+
+const OrderHistoryTab = ({ user, searchQuery, onSearchChange, statusFilter, onStatusChange }: {
+    user: any,
+    searchQuery: string,
+    onSearchChange: (val: string) => void,
+    statusFilter: string,
+    onStatusChange: (val: string) => void
+}) => {
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loadingOrders, setLoadingOrders] = useState(true);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            if (!user) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/user/${user.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const mappedOrders = data.map((order: any) => ({
+                        id: order.id,
+                        date: new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        total: `$${Number(order.total_paid).toLocaleString()}`,
+                        status: order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase(),
+                        vehicle: order.quote?.items?.[0]?.product?.name || 'Various Parts'
+                    }));
+                    setOrders(mappedOrders);
+                }
+            } catch (error) {
+                console.error('Failed to fetch orders:', error);
+            } finally {
+                setLoadingOrders(false);
+            }
+        };
+        fetchOrders();
+    }, [user]);
+
+    const filteredOrders = orders.filter(o => {
+        const matchesSearch = o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            o.vehicle.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    return (
+        <section className="space-y-10">
+            <div className="flex items-center gap-3 border-l-4 border-primary pl-6">
+                <h2 className="text-lg font-black text-secondary dark:text-white uppercase tracking-widest">Order History</h2>
+            </div>
+
+            <ListSearchFilter
+                placeholder="Search by Order ID or Vehicle..."
+                statuses={['Processing', 'Delivered', 'Cancelled']}
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+                statusFilter={statusFilter}
+                onStatusChange={onStatusChange}
+            />
+
+            {loadingOrders ? (
+                <div className="py-20 text-center text-gray-400">Loading orders...</div>
+            ) : (
+                <div className="space-y-6">
+                    {filteredOrders.length > 0 ? filteredOrders.map((order, i) => (
+                        <div key={i} className="bg-gray-50/50 dark:bg-slate-950 p-8 rounded-[2rem] border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-primary/20 transition-all">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105">
+                                    <ShoppingBag className="text-primary" size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">ID: {order.id}</p>
+                                    <h3 className="text-lg font-black text-secondary dark:text-white">{order.total} Order</h3>
+                                    <p className="text-sm font-bold text-gray-500">Ordered for <span className="text-primary">{order.vehicle}</span></p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-8">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Order Date</p>
+                                    <p className="text-lg font-black text-secondary dark:text-white">{order.date}</p>
+                                </div>
+                                <span className={cn(
+                                    "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                    order.status === 'Delivered' ? "bg-green-500/5 text-green-500 border-green-500/20" :
+                                        order.status === 'Processing' || order.status === 'Paid' ? "bg-blue-500/5 text-blue-500 border-blue-500/20" :
+                                            "bg-red-500/5 text-red-500 border-red-500/20"
+                                )}>
+                                    {order.status}
+                                </span>
+                                <Link
+                                    href={`/order-success/${order.id}`}
+                                    className="btn-primary p-4 rounded-xl shadow-none flex items-center justify-center"
+                                >
+                                    <FileText size={20} />
+                                </Link>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="py-20 text-center bg-gray-50/30 dark:bg-slate-950 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800">
+                            <Search className="mx-auto mb-4 text-gray-300 dark:text-slate-700" size={48} />
+                            <p className="text-gray-400 font-bold italic">No records found matching your criteria.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </section>
+    );
+};
 
 const ProfilePage = () => {
     const { user, updateUser } = useAuth();
@@ -169,36 +323,7 @@ const ProfilePage = () => {
         showToast('Success', 'Default address updated');
     };
 
-    const ListSearchFilter = ({ placeholder, statuses }: { placeholder: string, statuses: string[] }) => (
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1 group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
-                <input
-                    type="text"
-                    placeholder={placeholder}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-gray-50/50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:text-white"
-                />
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                {['All', ...statuses].map((status) => (
-                    <button
-                        key={status}
-                        onClick={() => setStatusFilter(status)}
-                        className={cn(
-                            "px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
-                            statusFilter === status
-                                ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                                : "bg-white dark:bg-slate-900 text-gray-400 border-gray-100 dark:border-slate-800 hover:border-primary/20"
-                        )}
-                    >
-                        {status}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
+
 
     return (
         <div className="min-h-screen bg-gray-50/10 dark:bg-[#030712] flex flex-col">
@@ -518,6 +643,10 @@ const ProfilePage = () => {
                         <ListSearchFilter
                             placeholder="Search by Quote ID (e.g. Q-9482)..."
                             statuses={['Price Ready', 'Reviewing', 'Expired']}
+                            searchQuery={searchQuery}
+                            onSearchChange={setSearchQuery}
+                            statusFilter={statusFilter}
+                            onStatusChange={setStatusFilter}
                         />
 
                         <div className="space-y-6">
@@ -570,71 +699,14 @@ const ProfilePage = () => {
                     </section>
                 );
             case 'Order History':
-                const orders = [
-                    { id: 'ORD-10224', date: 'Oct 28, 2023', total: '$1,240', status: 'Processing', vehicle: 'Toyota Land Cruiser V8' },
-                    { id: 'ORD-09881', date: 'Sep 12, 2023', total: '$450', status: 'Delivered', vehicle: 'Honda Civic' },
-                ];
-
-                const filteredOrders = orders.filter(o => {
-                    const matchesSearch = o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        o.vehicle.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
-                    return matchesSearch && matchesStatus;
-                });
-
                 return (
-                    <section className="space-y-10">
-                        <div className="flex items-center gap-3 border-l-4 border-primary pl-6">
-                            <h2 className="text-lg font-black text-secondary dark:text-white uppercase tracking-widest">Order History</h2>
-                        </div>
-
-                        <ListSearchFilter
-                            placeholder="Search by Order ID or Vehicle..."
-                            statuses={['Processing', 'Delivered', 'Cancelled']}
-                        />
-
-                        <div className="space-y-6">
-                            {filteredOrders.length > 0 ? filteredOrders.map((order, i) => (
-                                <div key={i} className="bg-gray-50/50 dark:bg-slate-950 p-8 rounded-[2rem] border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-primary/20 transition-all">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105">
-                                            <ShoppingBag className="text-primary" size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">ID: {order.id}</p>
-                                            <h3 className="text-lg font-black text-secondary dark:text-white">{order.total} Order</h3>
-                                            <p className="text-sm font-bold text-gray-500">Ordered for <span className="text-primary">{order.vehicle}</span></p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-8">
-                                        <div className="text-right hidden sm:block">
-                                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Order Date</p>
-                                            <p className="text-lg font-black text-secondary dark:text-white">{order.date}</p>
-                                        </div>
-                                        <span className={cn(
-                                            "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                                            order.status === 'Delivered' ? "bg-green-500/5 text-green-500 border-green-500/20" :
-                                                order.status === 'Processing' ? "bg-blue-500/5 text-blue-500 border-blue-500/20" :
-                                                    "bg-red-500/5 text-red-500 border-red-500/20"
-                                        )}>
-                                            {order.status}
-                                        </span>
-                                        <Link
-                                            href={`/profile/orders/${order.id}`}
-                                            className="btn-primary p-4 rounded-xl shadow-none flex items-center justify-center"
-                                        >
-                                            <FileText size={20} />
-                                        </Link>
-                                    </div>
-                                </div>
-                            )) : (
-                                <div className="py-20 text-center bg-gray-50/30 dark:bg-slate-950 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800">
-                                    <Search className="mx-auto mb-4 text-gray-300 dark:text-slate-700" size={48} />
-                                    <p className="text-gray-400 font-bold italic">No records found matching your criteria.</p>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                    <OrderHistoryTab
+                        user={user}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        statusFilter={statusFilter}
+                        onStatusChange={setStatusFilter}
+                    />
                 );
             case 'Saved Parts':
                 return (
@@ -794,6 +866,8 @@ const ProfilePage = () => {
                         </div>
                     </section>
                 );
+            case 'Garage':
+                return <VehicleSection />;
             default:
                 return null;
         }

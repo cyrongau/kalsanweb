@@ -7,7 +7,7 @@ export class QuoteItem {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => Quote, (quote) => quote.items)
+    @ManyToOne(() => Quote, (quote) => quote.items, { onDelete: 'CASCADE' })
     quote: Quote;
 
     @ManyToOne(() => Product)

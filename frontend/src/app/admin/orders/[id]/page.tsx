@@ -130,21 +130,28 @@ const OrderDetailsPage = () => {
                                 Order Items
                             </h2>
                             <div className="divide-y divide-gray-50 dark:divide-slate-800">
-                                {order.quote?.items?.map((item: any) => (
-                                    <div key={item.id} className="py-6 flex items-center gap-6">
-                                        <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 overflow-hidden">
-                                            <img src={item.product?.image_urls?.[0]} className="w-full h-full object-cover" />
+                                {order.quote?.items?.map((item: any) => {
+                                    let imageUrl = '/placeholder.png';
+                                    if (item.product?.image_urls?.[0]) {
+                                        const url = item.product.image_urls[0];
+                                        imageUrl = url.startsWith('http') ? url : `http://localhost:3001${url}`;
+                                    }
+                                    return (
+                                        <div key={item.id} className="py-6 flex items-center gap-6">
+                                            <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 overflow-hidden">
+                                                <img src={imageUrl} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-secondary dark:text-white">{item.product?.name}</h4>
+                                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">SKU: {item.product?.sku}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs text-gray-400 font-bold block">Qty: {item.quantity}</span>
+                                                <span className="text-sm font-black text-secondary dark:text-white">${(item.unit_price * item.quantity).toLocaleString()}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-secondary dark:text-white">{item.product?.name}</h4>
-                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">SKU: {item.product?.sku}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-xs text-gray-400 font-bold block">Qty: {item.quantity}</span>
-                                            <span className="text-sm font-black text-secondary dark:text-white">${(item.unit_price * item.quantity).toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                             <div className="pt-8 border-t border-gray-50 dark:border-slate-800 flex justify-between items-center text-xl font-black text-secondary dark:text-white">
                                 <span>Total Paid</span>
@@ -186,7 +193,7 @@ const OrderDetailsPage = () => {
                             <button
                                 onClick={handleUpdateStatus}
                                 disabled={isSubmitting}
-                                className="w-full py-5 bg-secondary dark:bg-white dark:text-secondary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+                                className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
                                 Update Order Fulfillment
                             </button>
@@ -198,7 +205,7 @@ const OrderDetailsPage = () => {
                         <div className="bg-primary rounded-[2.5rem] p-10 text-white space-y-6">
                             <div className="flex items-center gap-4">
                                 <User size={24} />
-                                <h3 className="font-black uppercase tracking-tight">{order.user?.displayName}</h3>
+                                <h3 className="font-black uppercase tracking-tight">{order.user?.name || 'Guest'}</h3>
                             </div>
                             <div className="space-y-3 text-sm text-white/80 font-medium">
                                 <p className="flex items-center gap-2"><Mail size={16} /> {order.user?.email}</p>

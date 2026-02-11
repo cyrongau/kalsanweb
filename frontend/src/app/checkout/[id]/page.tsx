@@ -42,6 +42,12 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
     const { settings } = useAdmin();
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank' | 'mobile'>('card');
     const [mobileProvider, setMobileProvider] = useState<string>('edahab');
+    const [shippingAddress, setShippingAddress] = useState({
+        street: '',
+        city: '',
+        state: '', // Region/District
+        phone: ''
+    });
     const [isProcessing, setIsProcessing] = useState(false);
     const [quote, setQuote] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -84,17 +90,23 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
         try {
             const res = await fetch(`${API_BASE_URL}/quotes/${quote.id}/finalize`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paymentMethod: paymentMethod === 'mobile' ? mobileProvider : paymentMethod,
+                    shippingAddress
+                }),
             });
 
             if (res.ok) {
                 const order = await res.json();
 
-                // Use shared utility (if available, or simulate)
                 if (typeof generateReceiptPDF === 'function') {
-                    generateReceiptPDF(order.id, quote.items.map((i: any) => ({
+                    await generateReceiptPDF(order.id, quote.items.map((i: any) => ({
                         name: i.product?.name,
                         qty: i.quantity,
-                        price: i.unit_price,
+                        price: Number(i.unit_price || 0),
                         image: i.product?.image_urls?.[0],
                         spec: i.product?.sku
                     })), settings, paymentMethod);
@@ -205,180 +217,239 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                 {/* Right Side: Payment Form */}
                 <div className="flex-1 bg-slate-950 p-10 md:p-14 space-y-10">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-black tracking-tight text-white">Payment Method</h2>
+                        <h2 className="text-2xl font-black tracking-tight text-white">Shipping & Payment</h2>
                     </div>
 
-                    {/* Method Selector */}
-                    <div className="flex bg-white/5 p-1.5 rounded-2xl gap-2">
-                        {[
-                            { id: 'card', name: 'Card', icon: CreditCard },
-                            { id: 'bank', name: 'Bank', icon: Building2 },
-                            { id: 'mobile', name: 'Mobile', icon: Smartphone },
-                        ].map((method) => (
-                            <button
-                                key={method.id}
-                                onClick={() => setPaymentMethod(method.id as any)}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                                    paymentMethod === method.id
-                                        ? "bg-primary shadow-lg shadow-primary/20 text-white"
-                                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                                )}
-                            >
-                                <method.icon size={16} />
-                                {method.name}
-                            </button>
-                        ))}
+                    {/* Shipping Address Form */}
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                        <div className="flex items-center gap-2 text-primary">
+                            <Truck size={16} />
+                            <span className="text-xs font-black uppercase tracking-widest">Shipping Address</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2 space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Street Address</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={shippingAddress.street}
+                                    onChange={(e) => setShippingAddress({ ...shippingAddress, street: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                    placeholder="e.g. 123 Main St, Apt 4B"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">City</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={shippingAddress.city}
+                                    onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                    placeholder="e.g. Hargeisa"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Region / State</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={shippingAddress.state}
+                                    onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                    placeholder="e.g. Maroodi Jeex"
+                                />
+                            </div>
+                            <div className="col-span-2 space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    required
+                                    value={shippingAddress.phone}
+                                    onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                    placeholder="e.g. +252 63 4444444"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <form onSubmit={handleConfirmOrder} className="space-y-8">
-                        {paymentMethod === 'card' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Cardholder Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Johnathan Doe"
-                                        required
-                                        className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Card Number</label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="0000 0000 0000 0000"
-                                            required
-                                            className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10 tracking-widest"
-                                        />
-                                        <Lock size={18} className="absolute right-0 top-1 text-white/20" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-12">
+                    <div className="h-px bg-white/10" />
+
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold tracking-tight text-white">Payment Method</h2>
+
+                        {/* Method Selector */}
+                        <div className="flex bg-white/5 p-1.5 rounded-2xl gap-2">
+                            {[
+                                { id: 'card', name: 'Card', icon: CreditCard },
+                                { id: 'bank', name: 'Bank', icon: Building2 },
+                                { id: 'mobile', name: 'Mobile', icon: Smartphone },
+                            ].map((method) => (
+                                <button
+                                    key={method.id}
+                                    onClick={() => setPaymentMethod(method.id as any)}
+                                    className={cn(
+                                        "flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                                        paymentMethod === method.id
+                                            ? "bg-primary shadow-lg shadow-primary/20 text-white"
+                                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    )}
+                                >
+                                    <method.icon size={16} />
+                                    {method.name}
+                                </button>
+                            ))}
+                        </div>
+
+                        <form onSubmit={handleConfirmOrder} className="space-y-8">
+                            {paymentMethod === 'card' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Expiry Date</label>
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Cardholder Name</label>
                                         <input
                                             type="text"
-                                            placeholder="MM / YY"
+                                            placeholder="Johnathan Doe"
                                             required
                                             className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">CVV</label>
-                                        <input
-                                            type="text"
-                                            placeholder="***"
-                                            required
-                                            className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10 tracking-[0.5em]"
-                                        />
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Card Number</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="0000 0000 0000 0000"
+                                                required
+                                                className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10 tracking-widest"
+                                            />
+                                            <Lock size={18} className="absolute right-0 top-1 text-white/20" />
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {paymentMethod === 'bank' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div className="p-8 rounded-3xl bg-white/5 border border-white/10 space-y-6">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">Bank Transfer Details</p>
-                                        <h3 className="text-xl font-black text-white">Transfer to Kalsan Auto</h3>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <span className="text-xs font-bold text-white/40">Bank Name</span>
-                                            <span className="text-xs font-black text-white">Premier Bank</span>
+                                    <div className="grid grid-cols-2 gap-12">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Expiry Date</label>
+                                            <input
+                                                type="text"
+                                                placeholder="MM / YY"
+                                                required
+                                                className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10"
+                                            />
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-xs font-bold text-white/40">Account Name</span>
-                                            <span className="text-xs font-black text-white">Kalsan Auto Parts Ltd</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-xs font-bold text-white/40">Account Number</span>
-                                            <span className="text-xs font-black text-primary select-all">100299884455</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-xs font-bold text-white/40">SWIFT/BIC</span>
-                                            <span className="text-xs font-black text-white select-all">PRMRSOXXXX</span>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">CVV</label>
+                                            <input
+                                                type="text"
+                                                placeholder="***"
+                                                required
+                                                className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10 tracking-[0.5em]"
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {paymentMethod === 'mobile' && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Select Provider</label>
-                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                        {mobileProviders.map((provider) => (
-                                            <button
-                                                key={provider.id}
-                                                type="button"
-                                                onClick={() => setMobileProvider(provider.id)}
-                                                className={cn(
-                                                    "aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all group",
-                                                    mobileProvider === provider.id
-                                                        ? "bg-primary/20 border-primary text-primary"
-                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
-                                                )}
-                                            >
-                                                <div className={cn(
-                                                    "w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm",
-                                                    mobileProvider === provider.id ? "bg-primary text-white" : "bg-white/10"
-                                                )}>
-                                                    {provider.logo}
-                                                </div>
-                                                <span className="text-[9px] font-black uppercase tracking-tight">{provider.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Mobile Number</label>
-                                    <div className="relative">
-                                        <input
-                                            type="tel"
-                                            placeholder="+252 63 XXX XXXX"
-                                            required
-                                            className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10"
-                                        />
-                                        <MobileIcon size={18} className="absolute right-0 top-1 text-white/20" />
-                                    </div>
-                                    <p className="text-[9px] text-white/40 font-bold mt-2">Enter your registered mobile number for {mobileProviders.find(p => p.id === mobileProvider)?.name}.</p>
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            disabled={isProcessing}
-                            className="w-full bg-primary hover:bg-primary-dark text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.3em] text-sm shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isProcessing ? (
-                                <>
-                                    Processing...
-                                    <Loader2 size={20} className="animate-spin" />
-                                </>
-                            ) : (
-                                <>
-                                    Confirm order
-                                    <CheckCircle2 size={20} />
-                                </>
                             )}
-                        </button>
-                    </form>
 
-                    <div className="flex items-center justify-center gap-8 py-4 opacity-30">
-                        <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> SSL Secured</div>
-                        <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> PCI Compliant</div>
-                        <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> 256-bit AES</div>
+                            {paymentMethod === 'bank' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 space-y-6">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Bank Transfer Details</p>
+                                            <h3 className="text-xl font-black text-white">Transfer to Kalsan Auto</h3>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between">
+                                                <span className="text-xs font-bold text-white/40">Bank Name</span>
+                                                <span className="text-xs font-black text-white">Premier Bank</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-xs font-bold text-white/40">Account Name</span>
+                                                <span className="text-xs font-black text-white">Kalsan Auto Parts Ltd</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-xs font-bold text-white/40">Account Number</span>
+                                                <span className="text-xs font-black text-primary select-all">100299884455</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-xs font-bold text-white/40">SWIFT/BIC</span>
+                                                <span className="text-xs font-black text-white select-all">PRMRSOXXXX</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {paymentMethod === 'mobile' && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Select Provider</label>
+                                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                            {mobileProviders.map((provider) => (
+                                                <button
+                                                    key={provider.id}
+                                                    type="button"
+                                                    onClick={() => setMobileProvider(provider.id)}
+                                                    className={cn(
+                                                        "aspect-square rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all group",
+                                                        mobileProvider === provider.id
+                                                            ? "bg-primary/20 border-primary text-primary"
+                                                            : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
+                                                    )}
+                                                >
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm",
+                                                        mobileProvider === provider.id ? "bg-primary text-white" : "bg-white/10"
+                                                    )}>
+                                                        {provider.logo}
+                                                    </div>
+                                                    <span className="text-[9px] font-black uppercase tracking-tight">{provider.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-1">Mobile Number</label>
+                                        <div className="relative">
+                                            <input
+                                                type="tel"
+                                                placeholder="+252 63 XXX XXXX"
+                                                required
+                                                className="w-full bg-transparent border-b border-white/10 pb-4 text-lg font-black outline-none focus:border-primary transition-colors placeholder:text-white/10"
+                                            />
+                                            <MobileIcon size={18} className="absolute right-0 top-1 text-white/20" />
+                                        </div>
+                                        <p className="text-[9px] text-white/40 font-bold mt-2">Enter your registered mobile number for {mobileProviders.find(p => p.id === mobileProvider)?.name}.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <button
+                                disabled={isProcessing}
+                                className="w-full bg-primary hover:bg-primary-dark text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.3em] text-sm shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        Processing...
+                                        <Loader2 size={20} className="animate-spin" />
+                                    </>
+                                ) : (
+                                    <>
+                                        Confirm order
+                                        <CheckCircle2 size={20} />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="flex items-center justify-center gap-8 py-4 opacity-30">
+                            <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> SSL Secured</div>
+                            <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> PCI Compliant</div>
+                            <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest"><ShieldCheck size={12} /> 256-bit AES</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default CheckoutPage;
+            export default CheckoutPage;

@@ -1,6 +1,5 @@
-"use client";
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +24,17 @@ const ConfirmationModal = ({
     cancelLabel = "Cancel",
     variant = 'danger'
 }: ConfirmationModalProps) => {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        console.log("ConfirmationModal mounted");
+        return () => setMounted(false);
+    }, []);
+
+    console.log("ConfirmationModal render. isOpen:", isOpen, "mounted:", mounted);
+
+    if (!isOpen || !mounted) return null;
 
     const variantStyles = {
         danger: "bg-red-500 hover:bg-red-600 shadow-red-500/20",
@@ -33,8 +42,8 @@ const ConfirmationModal = ({
         info: "bg-primary hover:bg-primary-dark shadow-primary/20",
     };
 
-    return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[1050] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-300">
                 <div className="p-8 space-y-6">
@@ -76,7 +85,8 @@ const ConfirmationModal = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

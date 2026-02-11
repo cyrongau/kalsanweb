@@ -48,8 +48,8 @@ export class QuotesController {
     }
 
     @Post(':id/finalize')
-    finalize(@Param('id') id: string) {
-        return this.quotesService.convertToOrder(id);
+    finalize(@Param('id') id: string, @Body() body: { paymentMethod?: string; shippingAddress?: any }) {
+        return this.quotesService.convertToOrder(id, body.paymentMethod, body.shippingAddress);
     }
 
     @Get('user/:userId')

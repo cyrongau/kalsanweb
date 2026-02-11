@@ -7,6 +7,7 @@ import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 
 import { MailsService } from '../mails/mails.service';
+import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class QuotesService {
@@ -16,6 +17,7 @@ export class QuotesService {
         @InjectRepository(QuoteItem)
         private quoteItemsRepository: Repository<QuoteItem>,
         private mailsService: MailsService,
+        private ordersService: OrdersService,
     ) { }
 
     async create(user: User, productItems: { productId: string; quantity: number }[], guestInfo?: { name?: string; email?: string; phone?: string; notes?: string }): Promise<Quote> {
@@ -120,14 +122,25 @@ export class QuotesService {
         });
     }
 
-    async convertToOrder(id: string): Promise<Quote> {
+    async convertToOrder(id: string, paymentMethod: string = 'card', shippingAddress?: any): Promise<any> {
         const quote = await this.findOne(id);
         if (quote.status !== QuoteStatus.PRICE_READY) {
             throw new BadRequestException('Quote must be in price_ready status to be converted');
         }
 
+        // Update quote status to converted
         quote.status = QuoteStatus.CONVERTED;
-        return this.quotesRepository.save(quote);
+        await this.quotesRepository.save(quote);
+
+        // Create the actual order record using OrdersService
+        const order = await this.ordersService.create(
+            quote.id,
+            `payment_${Date.now()}`, // Generate a simple payment intent ID
+            paymentMethod,
+            shippingAddress
+        );
+
+        return order;
     }
 
     async findByUser(userId: string): Promise<Quote[]> {

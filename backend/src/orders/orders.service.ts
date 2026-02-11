@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
 import { Quote } from '../quotes/quote.entity';
 import { User } from '../users/user.entity';
@@ -11,18 +11,46 @@ export class OrdersService {
     constructor(
         @InjectRepository(Order)
         private ordersRepository: Repository<Order>,
+        @InjectRepository(Quote)
+        private quotesRepository: Repository<Quote>,
+        private dataSource: DataSource,
         private mailsService: MailsService,
     ) { }
 
-    async create(user: User, quote: Quote, paymentIntentId: string): Promise<Order> {
-        const order = new Order();
-        order.user = user;
-        order.quote = quote;
-        order.payment_intent_id = paymentIntentId;
-        order.total_paid = quote.total_amount;
-        order.status = OrderStatus.PAID;
+    async create(quoteId: string, paymentIntentId: string, paymentMethod: string = 'card', shippingAddress?: any): Promise<Order> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        return this.ordersRepository.save(order);
+        try {
+            const quote = await this.quotesRepository.findOne({
+                where: { id: quoteId },
+                relations: ['items', 'items.product', 'user'],
+            });
+
+            if (!quote) {
+                throw new NotFoundException('Quote not found');
+            }
+
+            const order = this.ordersRepository.create({
+                quote,
+                user: quote.user,
+                payment_intent_id: paymentIntentId,
+                payment_method: paymentMethod,
+                status: OrderStatus.PAID,
+                shipping_address: shippingAddress,
+                total_paid: quote.total_amount, // Added this based on original logic
+            });
+
+            const savedOrder = await queryRunner.manager.save(order);
+            await queryRunner.commitTransaction();
+            return savedOrder;
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
     }
 
     async findOne(id: string): Promise<Order> {
@@ -55,6 +83,14 @@ export class OrdersService {
     async getUnreadCount(): Promise<number> {
         return this.ordersRepository.count({
             where: { is_read: false }
+        });
+    }
+
+    async findAllByUser(userId: string): Promise<Order[]> {
+        return this.ordersRepository.find({
+            where: { user: { id: userId } },
+            relations: ['quote', 'quote.items', 'quote.items.product'],
+            order: { created_at: 'DESC' }
         });
     }
 

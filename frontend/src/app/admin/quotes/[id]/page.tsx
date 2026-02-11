@@ -287,6 +287,16 @@ const QuoteDetailsPage = () => {
                                 </div>
                             </div>
 
+                            {/* Customer Notes Section */}
+                            {quote.guest_notes && (
+                                <div className="pt-6 border-t border-white/10 space-y-3">
+                                    <h4 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Customer Notes</h4>
+                                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+                                        <p className="text-sm font-medium text-white/90 leading-relaxed">{quote.guest_notes}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <Link
                                 href={`/admin/users/${quote.user?.id}`}
                                 className="block w-full text-center py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"

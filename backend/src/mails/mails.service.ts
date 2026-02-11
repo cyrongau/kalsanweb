@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+﻿import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { SettingsService } from '../settings/settings.service';
 
@@ -82,7 +82,7 @@ export class MailsService {
         const subject = `Quote Request Received - ${quoteId}`;
         const content = `
             <div style="text-align: center;">
-                <div style="display: inline-block; width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; line-height: 64px; color: #3b82f6; font-size: 32px; margin-bottom: 20px;">📋</div>
+                <div style="display: inline-block; width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; line-height: 64px; color: #3b82f6; font-size: 32px; margin-bottom: 20px;">&#128203;</div>
                 <h2 style="margin: 0 0 10px; color: #1e293b; font-size: 24px; font-weight: bold;">We've Received Your Request</h2>
                 <p style="margin: 0; color: #64748b; font-size: 16px; line-height: 1.5;">Thank you for choosing Kalsan Auto Spare Parts. We've successfully received your inquiry and our inventory specialists are checking the latest availability and pricing for you.</p>
                 <div style="margin-top: 20px; display: inline-block; background-color: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-family: monospace; color: #475569; font-weight: bold;">QUOTE ID: #${quoteId}</div>
@@ -141,7 +141,7 @@ export class MailsService {
 
         const content = `
             <div style="text-align: center; padding-bottom: 20px;">
-                <div style="display: inline-block; width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; line-height: 64px; color: #3b82f6; font-size: 32px; margin-bottom: 20px;">✓</div>
+                <div style="display: inline-block; width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; line-height: 64px; color: #3b82f6; font-size: 32px; margin-bottom: 20px;">âœ“</div>
                 <h2 style="margin: 0 0 10px; color: #1e293b; font-size: 24px; font-weight: bold;">Your Quote is Ready</h2>
                 <p style="margin: 0; color: #64748b; font-size: 16px; line-height: 1.5;">We've processed your request. Please review the pricing details below to proceed with your order.</p>
                 <div style="margin-top: 20px; display: inline-block; background-color: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-family: monospace; color: #475569; font-weight: bold;">QUOTE ID: #${id}</div>
@@ -198,7 +198,7 @@ export class MailsService {
 
             <!-- GTA -->
             <div style="margin-top: 40px; text-align: center;">
-                <a href="${actionLink}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background-color 0.2s;">View & Finalize Order →</a>
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/profile" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background-color 0.2s;">View Quote in My Profile </a>
                 <p style="margin: 15px 0 0; color: #94a3b8; font-size: 12px;">Clicking the button will direct you to login and view your quotes.</p>
             </div>
         `;
@@ -211,7 +211,7 @@ export class MailsService {
         const subject = `Your Order has Shipped! - ${orderId}`;
         const content = `
             <div style="text-align: center;">
-                <div style="display: inline-block; width: 64px; height: 64px; background-color: #f0fdf4; border-radius: 50%; line-height: 64px; color: #16a34a; font-size: 32px; margin-bottom: 20px;">🚚</div>
+                <div style="display: inline-block; width: 64px; height: 64px; background-color: #f0fdf4; border-radius: 50%; line-height: 64px; color: #16a34a; font-size: 32px; margin-bottom: 20px;">ðŸšš</div>
                 <h2 style="margin: 0 0 10px; color: #1e293b; font-size: 24px; font-weight: bold;">Order Shipped</h2>
                 <p style="margin: 0; color: #64748b; font-size: 16px; line-height: 1.5;">Good news! Your order <strong>${orderId}</strong> is on its way.</p>
                 <div style="margin-top: 20px; background-color: #f8fafc; padding: 15px; border-radius: 6px; display: inline-block;">
@@ -280,7 +280,7 @@ export class MailsService {
         const workingHours = settings.workingHours || 'Sat - Thu: 8:00 AM - 6:00 PM';
 
         // Normalize Logo URL
-        let logoUrl = settings.logoLight;
+        let logoUrl = settings.logoDark;
         if (logoUrl && !logoUrl.startsWith('http')) {
             const baseUrl = process.env.API_BASE_URL || 'http://localhost:3001';
             logoUrl = `${baseUrl}${logoUrl}`;
@@ -338,7 +338,7 @@ export class MailsService {
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="padding-top: 30px; text-align: center; color: #94a3b8; font-size: 11px;">
-                                                    <p style="margin: 0;">© ${year} ${siteTitle}. All rights reserved.</p>
+                                                    <p style="margin: 0;">Â© ${year} ${siteTitle}. All rights reserved.</p>
                                                 </td>
                                             </tr>
                                         </table>
@@ -353,3 +353,4 @@ export class MailsService {
         `;
     }
 }
+

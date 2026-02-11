@@ -49,16 +49,50 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }, [user?.favorites]);
 
-    // Load quoteItems from localStorage (Cart is typically local until checkout)
-    useEffect(() => {
-        const savedQuote = localStorage.getItem('user_quote_cart');
-        if (savedQuote) setQuoteItems(JSON.parse(savedQuote));
-    }, []);
+    // Track which user matches the currently loaded quoteItems
+    const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
 
-    // Save to localStorage
+    // Load quoteItems from localStorage with user-specific key
     useEffect(() => {
-        localStorage.setItem('user_quote_cart', JSON.stringify(quoteItems));
-    }, [quoteItems]);
+        const currentId = user ? user.id : 'guest';
+        const cartKey = user ? `quote_cart_${user.id}` : 'quote_cart_guest';
+
+        let loadedItems: QuoteItem[] = [];
+        const savedQuote = localStorage.getItem(cartKey);
+
+        if (savedQuote) {
+            try {
+                loadedItems = JSON.parse(savedQuote);
+            } catch (e) {
+                console.error('Failed to load quote cart:', e);
+                localStorage.removeItem(cartKey);
+            }
+        }
+
+        // Update state with loaded items
+        setQuoteItems(loadedItems);
+        // Sync the loaded ID
+        setLoadedUserId(currentId);
+
+    }, [user?.id]);
+
+    // Save to localStorage with user-specific key
+    useEffect(() => {
+        const currentId = user ? user.id : 'guest';
+
+        // CRITICAL: Only save if we have definitely loaded the cart for THIS user
+        if (loadedUserId !== currentId) {
+            return;
+        }
+
+        const cartKey = user ? `quote_cart_${user.id}` : 'quote_cart_guest';
+        try {
+            localStorage.setItem(cartKey, JSON.stringify(quoteItems));
+        } catch (e) {
+            console.error('Failed to save quote cart:', e);
+            showToast('Warning', 'Unable to save quote cart. Storage may be full.', 'warning');
+        }
+    }, [quoteItems, user?.id, loadedUserId]);
 
     const toggleFavorite = async (product: Product) => {
         const exists = favorites.find(p => p.id === product.id);
@@ -114,7 +148,8 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const clearQuote = () => {
         setQuoteItems([]);
-        localStorage.removeItem('user_quote_cart');
+        const cartKey = user ? `quote_cart_${user.id}` : 'quote_cart_guest';
+        localStorage.removeItem(cartKey);
     };
 
     return (
