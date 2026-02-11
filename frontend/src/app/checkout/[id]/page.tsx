@@ -449,7 +449,9 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                     </div>
                 </div>
             </div>
-            );
+        </div>
+        </div >
+    );
 };
 
-            export default CheckoutPage;
+export default CheckoutPage;
