@@ -7,11 +7,13 @@ import { useAuth } from './AuthProvider';
 export interface Product {
     id: number | string;
     name: string;
-    category: string;
-    image: string;
+    image?: string;
+    description?: string;
     sku?: string;
+    average_rating?: number;
+    review_count?: number;
     price?: string | number;
-    rating?: number;
+    category?: string;
 }
 
 export interface QuoteItem extends Product {

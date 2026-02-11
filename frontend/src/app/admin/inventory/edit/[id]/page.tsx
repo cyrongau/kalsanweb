@@ -55,6 +55,7 @@ const EditProductPage = () => {
         category_id: '',
         condition_id: '',
         price: '',
+        short_description: '',
         description: '',
         stock_status: 'in_stock',
         quantity: 0,
@@ -102,6 +103,7 @@ const EditProductPage = () => {
                         category_id: data.category_id || '',
                         condition_id: data.condition_id || '',
                         price: data.price.toString(),
+                        short_description: data.short_description || '',
                         description: data.description || '',
                         stock_status: data.stock_status,
                         quantity: data.quantity,
@@ -298,6 +300,17 @@ const EditProductPage = () => {
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="e.g. Heavy Duty Brake Pad Set for TVS King"
                                         className="w-full bg-gray-50/50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2 space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Short Description</label>
+                                    <textarea
+                                        value={formData.short_description}
+                                        onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                                        placeholder="Brief summary appearing under the title..."
+                                        rows={2}
+                                        className="w-full bg-gray-50/50 dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-2xl px-6 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                                     />
                                 </div>
 

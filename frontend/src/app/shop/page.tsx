@@ -260,7 +260,7 @@ export default function ShopPage() {
                                             category: p.category?.name || 'Uncategorized',
                                             image: normalizeImageUrl(p.image_urls?.[0]) || 'https://placehold.co/400x300/f3f4f6/1d428a?text=No+Image',
                                             sku: p.sku,
-                                            rating: p.rating
+                                            average_rating: p.rating
                                         }}
                                     />
                                 ))}

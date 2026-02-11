@@ -2,6 +2,7 @@ import { Injectable, Logger, InternalServerErrorException, NotFoundException } f
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Product } from './product.entity';
+import { Review } from './review.entity';
 
 @Injectable()
 export class ProductsService {
@@ -58,16 +59,52 @@ export class ProductsService {
             queryBuilder.take(parseInt(limit));
         }
 
-        const results = await queryBuilder.getMany();
+        const results = await queryBuilder
+            .leftJoinAndSelect('product.reviews', 'reviews', 'reviews.status = :status', { status: 'approved' })
+            .getMany();
+
+        // Calculate virtual fields for frontend
+        const productsWithStats = results.map(product => {
+            const approvedReviews = product.reviews || [];
+            const reviewCount = approvedReviews.length;
+            const avgRating = reviewCount > 0
+                ? approvedReviews.reduce((sum: number, r: Review) => sum + r.rating, 0) / reviewCount
+                : 0;
+
+            return {
+                ...product,
+                review_count: reviewCount,
+                average_rating: parseFloat(avgRating.toFixed(1)),
+                // Optional: remove reviews array to save bandwidth if not needed in list view
+                // reviews: undefined 
+            };
+        });
+
         this.logger.log(`findAll results count: ${results.length}`);
-        return results;
+        return productsWithStats as any[];
     }
 
-    findOne(id: string): Promise<Product | null> {
-        return this.productsRepository.findOne({
+    async findOne(id: string): Promise<Product | null> {
+        const product = await this.productsRepository.findOne({
             where: { id },
-            relations: ['brand', 'category', 'condition']
+            relations: ['brand', 'category', 'condition', 'reviews']
         });
+
+        if (!product) return null;
+
+        // Filter for approved reviews only
+        const approvedReviews = product.reviews?.filter(r => r.status === 'approved') || [];
+        const reviewCount = approvedReviews.length;
+        const avgRating = reviewCount > 0
+            ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
+            : 0;
+
+        return {
+            ...product,
+            reviews: approvedReviews, // Return approved reviews for details page
+            review_count: reviewCount,
+            average_rating: parseFloat(avgRating.toFixed(1))
+        } as any;
     }
 
     findByBrand(brandId: string): Promise<Product[]> {

@@ -19,7 +19,8 @@ import {
     LogOut,
     Plus,
     Search,
-    MessageCircle
+    MessageCircle,
+    Star
 } from 'lucide-react';
 import SystemUpdateModal from './SystemUpdateModal';
 import { cn } from '@/lib/utils';
@@ -101,6 +102,8 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
         { href: '/admin/chat', icon: MessageCircle, label: 'Live Chat' },
         { href: '/admin/quotes', icon: MessageSquare, label: 'Quote Inquiries' },
         { href: '/admin/orders', icon: Package, label: 'Customer Orders' },
+        { href: '/admin/reviews', icon: Star, label: 'Reviews' },
+        { href: '/admin/customers', icon: Users, label: 'Customers' },
         { href: '/admin/cms', icon: Settings2, label: 'Content Manager' },
         { href: '/admin/inventory', icon: Package, label: 'Inventory' },
         { href: '/admin/taxonomy', icon: Tag, label: 'Taxonomy Manager' },

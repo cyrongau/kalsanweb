@@ -70,17 +70,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </div>
 
             <div className="space-y-4 px-2">
-                <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                        <Star
-                            key={i}
-                            size={14}
-                            className={cn(
-                                "fill-current",
-                                i < (product.rating || 5) ? "text-yellow-400" : "text-gray-200 dark:text-muted"
-                            )}
-                        />
-                    ))}
+                <div className="flex gap-1 items-center">
+                    <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                            <Star
+                                key={i}
+                                size={14}
+                                className={cn(
+                                    "fill-current",
+                                    i < Math.round(product.average_rating || 0) ? "text-yellow-400" : "text-gray-200 dark:text-muted"
+                                )}
+                            />
+                        ))}
+                    </div>
+                    {product.review_count !== undefined && product.review_count > 0 && (
+                        <span className="text-[9px] font-bold text-gray-400">({product.review_count})</span>
+                    )}
                 </div>
 
                 {/* Title Link */}

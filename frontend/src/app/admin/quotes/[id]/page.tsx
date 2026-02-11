@@ -22,7 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, normalizeImageUrl } from '@/lib/config';
 
 const QuoteDetailsPage = () => {
     const params = useParams();
@@ -33,6 +33,7 @@ const QuoteDetailsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [prices, setPrices] = useState<any[]>([]);
+    const [discount, setDiscount] = useState(0);
     const [adminNotes, setAdminNotes] = useState('');
 
     useEffect(() => {
@@ -43,6 +44,7 @@ const QuoteDetailsPage = () => {
                     const data = await res.json();
                     setQuote(data);
                     setAdminNotes(data.admin_notes || '');
+                    setDiscount(Number(data.discount) || 0);
                     // Initialize prices from existing data or set to 0
                     setPrices(data.items.map((item: any) => ({
                         itemId: item.id,
@@ -79,7 +81,7 @@ const QuoteDetailsPage = () => {
             const res = await fetch(`${API_BASE_URL}/quotes/${params.id}/prices`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: prices })
+                body: JSON.stringify({ items: prices, discount })
             });
 
             if (res.ok) {
@@ -110,6 +112,9 @@ const QuoteDetailsPage = () => {
         const item = quote.items.find((i: any) => i.id === p.itemId);
         return acc + (p.unitPrice * (item?.quantity || 0));
     }, 0);
+
+    const discountAmount = subtotal * (discount / 100);
+    const totalAmount = subtotal - discountAmount;
 
     return (
         <AdminLayout>
@@ -155,7 +160,10 @@ const QuoteDetailsPage = () => {
                                     <div key={item.id} className="flex gap-6 p-6 rounded-3xl bg-gray-50/50 dark:bg-slate-950/50 border border-gray-100 dark:border-slate-800/50">
                                         <div className="w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex-shrink-0">
                                             <img
-                                                src={item.product?.image_urls?.[0] || 'https://placehold.co/400x300?text=No+Image'}
+                                                src={normalizeImageUrl(item.product?.image_urls?.[0] || item.product?.image)}
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=No+Image';
+                                                }}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
@@ -181,6 +189,17 @@ const QuoteDetailsPage = () => {
                                                         onChange={(e) => handlePriceChange(item.id, e.target.value)}
                                                         className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all text-secondary dark:text-white"
                                                     />
+                                                    {Number(item.product?.price) > 0 && (
+                                                        <div className="flex items-center justify-between px-1">
+                                                            <span className="text-[10px] font-medium text-gray-400">List: ${Number(item.product.price).toFixed(2)}</span>
+                                                            <button
+                                                                onClick={() => handlePriceChange(item.id, String(item.product.price))}
+                                                                className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wide"
+                                                            >
+                                                                Use Price
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="text-right flex-1">
                                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Line Total</span>
@@ -194,19 +213,32 @@ const QuoteDetailsPage = () => {
                                 ))}
                             </div>
 
-                            {/* Summary Table */}
                             <div className="pt-10 border-t border-gray-50 dark:border-slate-800 space-y-4">
                                 <div className="flex justify-between items-center text-sm font-bold text-gray-500">
                                     <span>Subtotal</span>
                                     <span>${subtotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm font-bold text-gray-500">
+                                    <span>Discount (%)</span>
+                                    <div className="w-20 relative group">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={discount}
+                                            onChange={(e) => setDiscount(Number(e.target.value))}
+                                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-lg py-1 px-2 text-right text-xs font-black outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                        />
+                                        <span className="absolute right-7 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">%</span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center text-sm font-bold text-gray-500">
                                     <span>Shipping Est.</span>
                                     <span className="text-emerald-500">TBD / Included</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-4">
+                                <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-100 dark:border-slate-800 mt-4">
                                     <span className="text-lg font-black text-secondary dark:text-white uppercase tracking-tight">Estimated Total</span>
-                                    <span className="text-3xl font-black text-primary">${subtotal.toLocaleString()}</span>
+                                    <span className="text-3xl font-black text-primary">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>
@@ -269,7 +301,7 @@ const QuoteDetailsPage = () => {
 
                             <button
                                 onClick={handleSendResponse}
-                                disabled={isSubmitting || subtotal === 0}
+                                disabled={isSubmitting} // Removing subtotal check for now to allow 0 price quotes if needed (e.g. free items) or to debug. Alternatively, we can visually indicate why it is disabled.
                                 className="w-full flex items-center justify-center gap-3 py-5 bg-primary hover:bg-primary-dark disabled:bg-gray-100 dark:disabled:bg-slate-800 disabled:text-gray-400 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all group active:scale-95"
                             >
                                 {isSubmitting ? (

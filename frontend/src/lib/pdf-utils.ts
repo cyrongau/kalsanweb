@@ -81,8 +81,8 @@ export const generateReceiptPDF = (
     const tableRows = items.map(item => [
         item.name,
         item.qty.toString(),
-        `$${item.price.toFixed(2)}`,
-        `$${(item.qty * item.price).toFixed(2)}`
+        `$${Number(item.price || 0).toFixed(2)}`,
+        `$${(item.qty * Number(item.price || 0)).toFixed(2)}`
     ]);
 
     doc.autoTable({
@@ -108,7 +108,7 @@ export const generateReceiptPDF = (
     });
 
     // Calculations
-    const subtotal = items.reduce((acc, item) => acc + (item.qty * item.price), 0);
+    const subtotal = items.reduce((acc, item) => acc + (item.qty * Number(item.price || 0)), 0);
     const tax = subtotal * 0.05;
     const total = subtotal + tax;
 

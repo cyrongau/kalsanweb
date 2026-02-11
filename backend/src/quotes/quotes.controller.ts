@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
 import { QuotesService } from './quotes.service';
 import { User } from '../users/user.entity';
 
@@ -28,8 +28,13 @@ export class QuotesController {
     }
 
     @Patch(':id/prices')
-    setPrices(@Param('id') id: string, @Body() body: { items: { itemId: string; unitPrice: number }[] }) {
-        return this.quotesService.setPrices(id, body.items);
+    setPrices(@Param('id') id: string, @Body() body: { items: { itemId: string; unitPrice: number }[], discount?: number }) {
+        return this.quotesService.setPrices(id, body.items, body.discount);
+    }
+
+    @Delete(':id')
+    delete(@Param('id') id: string) {
+        return this.quotesService.delete(id);
     }
 
     @Patch(':id/read')
@@ -45,5 +50,10 @@ export class QuotesController {
     @Post(':id/finalize')
     finalize(@Param('id') id: string) {
         return this.quotesService.convertToOrder(id);
+    }
+
+    @Get('user/:userId')
+    getUserQuotes(@Param('userId') userId: string) {
+        return this.quotesService.findByUser(userId);
     }
 }

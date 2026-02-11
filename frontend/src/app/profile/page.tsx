@@ -12,6 +12,7 @@ import { Camera, ChevronDown, Plus, Save, FileText, ShoppingBag, Bookmark, Setti
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useQuote } from '@/components/providers/QuoteProvider';
 import ProductCard from '@/components/ProductCard';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Address {
     type: string;
@@ -57,6 +58,8 @@ const ProfilePage = () => {
         isDefault: false
     });
 
+    const [userQuotes, setUserQuotes] = useState<any[]>([]);
+
     useEffect(() => {
         if (user) {
             setFormData({
@@ -68,6 +71,20 @@ const ProfilePage = () => {
             if (user.avatar_url) setUserAvatar(user.avatar_url);
             if (user.garage_details) setVehicles(user.garage_details);
             if (user.addresses) setAddresses(user.addresses);
+
+            // Fetch User Quotes
+            const fetchQuotes = async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/quotes/user/${user.id}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setUserQuotes(data);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch quotes:', error);
+                }
+            };
+            fetchQuotes();
         }
     }, [user]);
 
@@ -472,15 +489,21 @@ const ProfilePage = () => {
                     </>
                 );
             case 'My Quotes':
-                const quotes = [
-                    { id: 'Q-9482', date: 'Oct 24, 2023', items: 3, status: 'Price Ready', total: '$1,240' },
-                    { id: 'Q-8211', date: 'Oct 15, 2023', items: 12, status: 'Reviewing', total: '---' },
-                    { id: 'Q-7110', date: 'Sep 22, 2023', items: 5, status: 'Expired', total: '$890' }
-                ];
+                const mapStatus = (status: string) => {
+                    switch (status) {
+                        case 'pending': return 'Reviewing';
+                        case 'reviewing': return 'Reviewing';
+                        case 'price_ready': return 'Price Ready';
+                        case 'converted': return 'Ordered';
+                        case 'expired': return 'Expired';
+                        default: return status;
+                    }
+                };
 
-                const filteredQuotes = quotes.filter(q => {
+                const filteredQuotes = userQuotes.filter(q => {
                     const matchesSearch = q.id.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesStatus = statusFilter === 'All' || q.status === statusFilter;
+                    const status = mapStatus(q.status);
+                    const matchesStatus = statusFilter === 'All' || status === statusFilter;
                     return matchesSearch && matchesStatus;
                 });
 
@@ -498,40 +521,46 @@ const ProfilePage = () => {
                         />
 
                         <div className="space-y-6">
-                            {filteredQuotes.length > 0 ? filteredQuotes.map((quote, i) => (
-                                <div key={i} className="bg-gray-50/50 dark:bg-slate-950 p-8 rounded-[2rem] border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-primary/20 transition-all">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105">
-                                            <FileText className="text-primary" size={24} />
+                            {filteredQuotes.length > 0 ? filteredQuotes.map((quote, i) => {
+                                const displayStatus = mapStatus(quote.status);
+                                return (
+                                    <div key={i} className="bg-gray-50/50 dark:bg-slate-950 p-8 rounded-[2rem] border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-primary/20 transition-all">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105">
+                                                <FileText className="text-primary" size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest" title={quote.id}>ID: #{quote.id.slice(0, 8)}</p>
+                                                <h3 className="text-lg font-black text-secondary dark:text-white">{Array.isArray(quote.items) ? quote.items.length : 0} Items Requested</h3>
+                                                <p className="text-sm font-bold text-gray-500">Requested on {new Date(quote.created_at).toLocaleDateString()}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">ID: {quote.id}</p>
-                                            <h3 className="text-lg font-black text-secondary dark:text-white">{quote.items} Items Requested</h3>
-                                            <p className="text-sm font-bold text-gray-500">Requested on {quote.date}</p>
+                                        <div className="flex items-center gap-8">
+                                            <div className="text-right hidden sm:block">
+                                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Amount</p>
+                                                <p className="text-xl font-black text-secondary dark:text-white">
+                                                    {quote.total_amount ? `$${Number(quote.total_amount).toLocaleString()}` : '---'}
+                                                </p>
+                                            </div>
+                                            <span className={cn(
+                                                "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                                displayStatus === 'Price Ready' ? "bg-green-500/5 text-green-500 border-green-500/20" :
+                                                    displayStatus === 'Reviewing' ? "bg-amber-500/5 text-amber-500 border-amber-500/20" :
+                                                        displayStatus === 'Ordered' ? "bg-blue-500/5 text-blue-500 border-blue-500/20" :
+                                                            "bg-red-500/5 text-red-500 border-red-500/20"
+                                            )}>
+                                                {displayStatus}
+                                            </span>
+                                            <Link
+                                                href={`/profile/quotes/${quote.id}`}
+                                                className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary/20 transition-all"
+                                            >
+                                                <Eye size={20} />
+                                            </Link>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-8">
-                                        <div className="text-right hidden sm:block">
-                                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Amount</p>
-                                            <p className="text-xl font-black text-secondary dark:text-white">{quote.total}</p>
-                                        </div>
-                                        <span className={cn(
-                                            "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                                            quote.status === 'Price Ready' ? "bg-green-500/5 text-green-500 border-green-500/20" :
-                                                quote.status === 'Reviewing' ? "bg-amber-500/5 text-amber-500 border-amber-500/20" :
-                                                    "bg-red-500/5 text-red-500 border-red-500/20"
-                                        )}>
-                                            {quote.status}
-                                        </span>
-                                        <Link
-                                            href={`/profile/quotes/${quote.id}`}
-                                            className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary/20 transition-all"
-                                        >
-                                            <Eye size={20} />
-                                        </Link>
-                                    </div>
-                                </div>
-                            )) : (
+                                );
+                            }) : (
                                 <div className="py-20 text-center bg-gray-50/30 dark:bg-slate-950 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800">
                                     <Search className="mx-auto mb-4 text-gray-300 dark:text-slate-700" size={48} />
                                     <p className="text-gray-400 font-bold italic">No records found matching your criteria.</p>

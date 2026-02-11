@@ -53,7 +53,9 @@ const RegisterPage = () => {
                 body: JSON.stringify({
                     email: formData.email,
                     password: formData.password,
-                    role: 'customer' // Default role for registration
+                    role: 'customer',
+                    name: formData.fullName,
+                    phone: formData.phone
                 }),
             });
 

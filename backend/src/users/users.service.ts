@@ -11,7 +11,7 @@ export class UsersService {
         private usersRepository: Repository<User>,
     ) { }
 
-    async create(email: string, password: string, role: UserRole = UserRole.CUSTOMER, team?: string): Promise<User> {
+    async create(email: string, password: string, role: UserRole = UserRole.CUSTOMER, team?: string, name?: string, phone?: string): Promise<User> {
         const existingUser = await this.usersRepository.findOneBy({ email });
         if (existingUser) {
             throw new ConflictException('User with this email already exists');
@@ -23,6 +23,8 @@ export class UsersService {
             password_hash,
             role,
             team,
+            name,
+            phone,
         });
 
         const savedUser = await this.usersRepository.save(user);

@@ -35,6 +35,9 @@ export class User {
     @Column({ nullable: true })
     avatar_url: string;
 
+    @Column({ nullable: true })
+    nationality: string;
+
     @Column({ type: 'jsonb', nullable: true })
     addresses: any[];
 

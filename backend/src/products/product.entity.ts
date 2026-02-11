@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Brand } from '../brands/brand.entity';
 import { Category } from '../categories/category.entity';
 import { Condition } from '../conditions/condition.entity';
+import { Review } from './review.entity';
 
 @Entity('products')
 export class Product {
@@ -64,6 +65,10 @@ export class Product {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @OneToMany(() => Review, (review) => review.product)
+    reviews: Review[];
+
 
     @UpdateDateColumn()
     updated_at: Date;

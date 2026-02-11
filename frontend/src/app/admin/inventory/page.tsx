@@ -20,7 +20,11 @@ import {
     ChevronDown,
     LayoutGrid,
     List,
-    RefreshCw
+    RefreshCw,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/components/providers/NotificationProvider';
@@ -46,6 +50,8 @@ const SAMPLE_PRODUCTS: Product[] = [
     { id: '4', sku: 'SPK-IRID-IX', name: 'Iridium Spark Plugs (4pc)', brand: 'NGK', category: 'Ignition', price: 45.99, quantity: 0, stock_status: 'out_of_stock', image: 'https://images.unsplash.com/photo-1597766353939-9d7620392f25?q=80&w=200' },
     { id: '5', sku: 'TYR-PS4S-19', name: 'Pilot Sport 4S 255/35 R19', brand: 'Michelin', category: 'Tires & Wheels', price: 340.00, quantity: 24, stock_status: 'in_stock', image: 'https://images.unsplash.com/photo-1549438340-08a8e1047d15?q=80&w=200' },
 ];
+
+const ITEMS_PER_PAGE = 8;
 
 const StatCard = ({ label, value, trend, icon: Icon, color }: any) => (
     <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-soft space-y-4 group hover:border-primary/20 transition-all">
@@ -73,6 +79,7 @@ const InventoryPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const fetchProducts = async () => {
         try {
@@ -157,6 +164,16 @@ const InventoryPage = () => {
         p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.brand.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     return (
         <AdminLayout>
@@ -277,7 +294,7 @@ const InventoryPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredProducts.map((p) => (
+                                    {paginatedProducts.map((p) => (
                                         <tr key={p.id} className="group hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-gray-50 dark:border-slate-800/50 last:border-0">
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-6">
@@ -314,7 +331,7 @@ const InventoryPage = () => {
                                             </td>
                                             <td className="px-8 py-6">
                                                 <span className={cn(
-                                                    "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-solid",
+                                                    "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-solid whitespace-nowrap",
                                                     getStatusStyles(p.stock_status)
                                                 )}>
                                                     {p.stock_status.replace('_', ' ')}
@@ -347,7 +364,7 @@ const InventoryPage = () => {
                     ) : (
                         /* Grid View */
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {filteredProducts.map((p) => (
+                            {paginatedProducts.map((p) => (
                                 <div key={p.id} className="bg-gray-50/50 dark:bg-slate-950 rounded-[2rem] border border-gray-100 dark:border-slate-800 p-6 space-y-6 group hover:border-primary/20 transition-all">
                                     <div className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-inner">
                                         <img src={normalizeImageUrl(p.image_urls?.[0] || p.image)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={p.name} />
@@ -387,6 +404,53 @@ const InventoryPage = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-8">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:block">
+                                Showing {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} items
+                            </p>
+
+                            <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                                <button
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={currentPage === 1}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-50 disabled:hover:text-gray-400 disabled:hover:border-gray-100 transition-all"
+                                >
+                                    <ChevronsLeft size={16} />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-50 disabled:hover:text-gray-400 disabled:hover:border-gray-100 transition-all"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+
+                                <div className="flex items-center gap-2 px-2">
+                                    <span className="text-sm font-black text-secondary dark:text-white">{currentPage}</span>
+                                    <span className="text-xs font-bold text-gray-400 uppercase">of</span>
+                                    <span className="text-sm font-black text-gray-400">{totalPages}</span>
+                                </div>
+
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-50 disabled:hover:text-gray-400 disabled:hover:border-gray-100 transition-all"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(totalPages)}
+                                    disabled={currentPage === totalPages}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-slate-800 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-50 disabled:hover:text-gray-400 disabled:hover:border-gray-100 transition-all"
+                                >
+                                    <ChevronsRight size={16} />
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

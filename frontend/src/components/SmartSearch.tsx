@@ -26,6 +26,15 @@ const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProp
 
     // ... existing useEffects ...
 
+    // ... existing useState ...
+    const [query, setQuery] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [results, setResults] = useState<Product[]>([]);
+
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+
     const handleSelectProduct = (productId: string) => {
         router.push(`/shop/${productId}`);
         setIsOpen(false);

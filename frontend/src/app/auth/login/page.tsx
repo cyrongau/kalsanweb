@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import AuthSplitLayout from '@/components/AuthSplitLayout';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,9 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,8 +48,10 @@ const LoginPage = () => {
 
             showToast('Welcome Back!', `Successfully logged in as ${data.user.name || data.user.email}`, 'success');
 
-            // Redirect based on role
-            if (data.user.role === 'admin' || data.user.role === 'super_admin') {
+            // Redirect based on redirect param or role
+            if (redirectUrl) {
+                router.push(redirectUrl);
+            } else if (data.user.role === 'admin' || data.user.role === 'super_admin') {
                 router.push('/admin/dashboard');
             } else {
                 router.push('/');

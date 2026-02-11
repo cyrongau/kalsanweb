@@ -17,6 +17,7 @@ import QuoteStatusTimeline from '@/components/QuoteStatusTimeline';
 import { useNotification } from '@/components/providers/NotificationProvider';
 import { useAdmin } from '@/components/providers/AdminProvider';
 import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import "jspdf-autotable";
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/config';
@@ -95,7 +96,7 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
             `$${(item.unit_price || 0) * item.quantity}`
         ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
             startY: 105,
@@ -143,6 +144,22 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
         { label: "Quote Ready", description: quote.status === 'price_ready' ? "Completed" : "Pending", icon: FileText, status: quote.status === 'reviewing' ? 'active' as const : quote.status === 'price_ready' ? 'completed' as const : 'pending' as const },
         { label: "Completed", description: quote.status === 'converted' ? "Completed" : "Pending", icon: CheckCircle2, status: quote.status === 'price_ready' ? 'active' as const : quote.status === 'converted' ? 'completed' as const : 'pending' as const },
     ];
+
+    const getImageUrl = (url: string) => {
+        if (!url) return 'https://placehold.co/400x300';
+        if (url.startsWith('http')) return url;
+
+        const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+        let cleanUrl = url.startsWith('/') ? url : `/${url}`;
+
+        // Ensure we are pointing to /uploads/ if it's not already there
+        // and if it's not a root API route (though typically images are in uploads)
+        if (!cleanUrl.startsWith('/uploads/')) {
+            cleanUrl = `/uploads${cleanUrl}`;
+        }
+
+        return `${baseUrl}${cleanUrl}`;
+    };
 
     return (
         <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 transition-colors duration-300">
@@ -206,7 +223,11 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
                                 {quote.items.map((item: any, index: number) => (
                                     <div key={index} className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                         <div className="w-32 h-32 rounded-3xl overflow-hidden bg-gray-100 dark:bg-slate-800 shrink-0 border border-gray-100 dark:border-slate-700">
-                                            <img src={item.product?.image_urls?.[0] || 'https://placehold.co/400x300'} alt={item.product?.name} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
+                                            <img
+                                                src={getImageUrl(item.product?.image_urls?.[0])}
+                                                alt={item.product?.name}
+                                                className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                                            />
                                         </div>
                                         <div className="flex-1 space-y-4 text-center md:text-left">
                                             <div className="space-y-1">
@@ -237,9 +258,14 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
                                     <span className="font-black text-secondary dark:text-white">${quote.total_amount || '0.00'}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Estimated Handling</span>
                                     <span className="font-black text-emerald-500 font-black uppercase text-[10px] tracking-widest">Included</span>
                                 </div>
+                                {quote.discount > 0 && (
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Discount ({quote.discount}%)</span>
+                                        <span className="font-black text-emerald-500">-${(Number(quote.total_amount) / (1 - (Number(quote.discount) / 100)) * (Number(quote.discount) / 100)).toFixed(2)}</span>
+                                    </div>
+                                )}
 
                                 <div className="pt-8 border-t border-gray-100 dark:border-slate-800">
                                     <div className="flex justify-between items-end">
@@ -252,7 +278,7 @@ const QuoteDetailPage = ({ params: paramsPromise }: { params: Promise<{ id: stri
 
                                 {quote.status === 'price_ready' ? (
                                     <Link
-                                        href={`/checkout?quoteId=${quote.id}`}
+                                        href={`/checkout/${quote.id}?quoteId=${quote.id}`}
                                         className="w-full bg-primary text-white py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-8"
                                     >
                                         Proceed to Checkout

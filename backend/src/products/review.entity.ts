@@ -27,6 +27,16 @@ export class Review {
     @Column()
     user_id: string;
 
+    @Column({
+        type: 'enum',
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    })
+    status: string;
+
+    @Column({ nullable: true })
+    title: string;
+
     @CreateDateColumn()
     created_at: Date;
 }

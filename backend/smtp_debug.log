@@ -1,0 +1,9 @@
+2026-02-10T23:00:08.660Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-10T23:00:10.092Z - ERROR - Failed to send to cyrongau@gmail.com: Can't send mail - all recipients were rejected: 553 5.7.1 <no-reply@kalsanspareparts.com>: Sender address rejected: not owned by user sales@kalsanspareparts.com
+2026-02-10T23:03:49.861Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-10T23:25:36.094Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-10T23:34:11.502Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-11T00:38:37.024Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-11T00:38:37.046Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-11T00:38:39.131Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465
+2026-02-11T00:41:32.151Z - INFO - SMTP Config: Host=smtp.hostinger.com, User=sales@kalsanspareparts.com, Port=465

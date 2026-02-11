@@ -208,6 +208,7 @@ export default function ProductDetailPage() {
                         description={product.description}
                         specifications={product.specifications}
                         compatibility={product.compatibility}
+                        reviews={product.reviews}
                     />
                 </div>
 

@@ -51,7 +51,6 @@ const AddProductPage = () => {
         category_id: '',
         condition_id: '',
         price: '',
-        price: '',
         short_description: '',
         description: '',
         stock_status: 'in_stock',

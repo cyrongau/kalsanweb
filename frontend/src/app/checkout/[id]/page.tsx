@@ -113,6 +113,21 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
         }
     };
 
+    const getImageUrl = (url: string) => {
+        if (!url) return 'https://placehold.co/400x300';
+        if (url.startsWith('http')) return url;
+
+        const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+        let cleanUrl = url.startsWith('/') ? url : `/${url}`;
+
+        // Ensure we are pointing to /uploads/ if it's not already there
+        if (!cleanUrl.startsWith('/uploads/')) {
+            cleanUrl = `/uploads${cleanUrl}`;
+        }
+
+        return `${baseUrl}${cleanUrl}`;
+    };
+
     if (isLoading) return (
         <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center gap-4">
             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -144,7 +159,7 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                                 <div key={idx} className="flex items-center justify-between group bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10">
-                                            <img src={item.product?.image_urls?.[0] || 'https://placehold.co/400x300'} alt={item.product?.name} className="w-full h-full object-cover" />
+                                            <img src={getImageUrl(item.product?.image_urls?.[0])} alt={item.product?.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="space-y-1">
                                             <div className="font-extrabold text-sm tracking-tight">{item.product?.name}</div>
@@ -160,7 +175,7 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                     <div className="pt-8 border-t border-white/10 space-y-4">
                         <div className="flex justify-between text-sm">
                             <span className="font-bold text-white/40">Item Subtotal</span>
-                            <span className="font-black">${quote.total_amount.toFixed(2)}</span>
+                            <span className="font-black">${Number(quote.total_amount || 0).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="font-bold text-white/40">Est. Handling</span>
@@ -172,7 +187,7 @@ const CheckoutPage = ({ params: paramsPromise }: { params: Promise<{ id: string 
                         </div>
                         <div className="pt-6 flex justify-between items-end border-t border-white/10">
                             <span className="text-lg font-black tracking-tight text-white">Total Amount</span>
-                            <span className="text-3xl font-black text-primary">${quote.total_amount.toFixed(2)}</span>
+                            <span className="text-3xl font-black text-primary">${Number(quote.total_amount || 0).toFixed(2)}</span>
                         </div>
                     </div>
 

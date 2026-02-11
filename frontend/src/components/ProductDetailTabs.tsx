@@ -29,9 +29,10 @@ interface ProductDetailTabsProps {
     description?: string;
     specifications?: Record<string, string>;
     compatibility?: string[];
+    reviews?: any[];
 }
 
-const ProductDetailTabs = ({ description, specifications = {}, compatibility = [] }: ProductDetailTabsProps) => {
+const ProductDetailTabs = ({ description, specifications = {}, compatibility = [], reviews = [] }: ProductDetailTabsProps) => {
     const [activeTab, setActiveTab] = useState('description');
 
     const specList = Object.entries(specifications).map(([label, value]) => ({ label, value }));
@@ -109,16 +110,93 @@ const ProductDetailTabs = ({ description, specifications = {}, compatibility = [
                     </div>
                 )}
                 {activeTab === 'reviews' && (
-                    <div className="text-center py-8 space-y-4">
-                        <div className="flex justify-center gap-1 text-gray-300">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} size={24} />
-                            ))}
+                    <div className="max-w-3xl mx-auto py-4 space-y-12">
+                        {/* Reviews Stats */}
+                        <div className="text-center space-y-4">
+                            <h3 className="text-2xl font-black text-secondary dark:text-foreground">Customer Reviews</h3>
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="flex text-yellow-400">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star key={star} size={24} className="fill-current" />
+                                    ))}
+                                </div>
+                                <span className="text-lg font-bold text-gray-500 dark:text-gray-400">4.8 out of 5</span>
+                            </div>
+                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Based on {reviews?.length || 0} reviews</p>
                         </div>
-                        <p className="text-sm text-gray-500 font-bold uppercase tracking-wide">No reviews yet for this product.</p>
-                        <button className="text-xs font-black text-primary hover:underline uppercase tracking-widest">
-                            Be the first to review
-                        </button>
+
+                        {/* Review List */}
+                        <div className="space-y-6">
+                            {reviews && reviews.length > 0 ? (
+                                reviews.map((review: any) => (
+                                    <div key={review.id} className="bg-gray-50 dark:bg-muted/10 p-6 rounded-3xl border border-gray-100 dark:border-muted">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-white dark:bg-muted/30 flex items-center justify-center font-black text-primary text-lg uppercase">
+                                                    {review.user?.first_name?.[0] || 'U'}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-secondary dark:text-foreground text-sm">{review.user?.first_name || 'Anonymous'}</h4>
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{new Date(review.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex text-yellow-400 gap-0.5">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} size={14} className={i < review.rating ? "fill-current" : "text-gray-200 dark:text-gray-600"} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {review.title && <h5 className="font-bold text-secondary dark:text-foreground mb-2">{review.title}</h5>}
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{review.comment}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 bg-gray-50/50 dark:bg-muted/5 rounded-3xl border border-dashed border-gray-200 dark:border-muted">
+                                    <p className="text-gray-400 font-bold">No reviews yet. Be the first to share your thoughts!</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Review Form */}
+                        <div className="bg-white dark:bg-muted/10 rounded-[2rem] p-8 border border-gray-100 dark:border-muted shadow-soft">
+                            <h4 className="text-xl font-black text-secondary dark:text-foreground mb-6">Write a Review</h4>
+                            <form className="space-y-6" onSubmit={(e) => {
+                                e.preventDefault();
+                                // Handle submission logic prop or context
+                                // For now just alert
+                                alert('Review submission to be implemented via prop callback');
+                            }}>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Rating</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button key={star} type="button" className="text-yellow-400 hover:scale-110 transition-transform">
+                                                <Star size={32} className={star <= 5 ? "fill-current" : "text-gray-200"} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Headline</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-gray-50 dark:bg-background border border-gray-100 dark:border-muted rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                        placeholder="What's most important to know?"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Review</label>
+                                    <textarea
+                                        rows={4}
+                                        className="w-full bg-gray-50 dark:bg-background border border-gray-100 dark:border-muted rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                                        placeholder="Tell us what you liked or disliked..."
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-all shadow-lg shadow-primary/20">
+                                    Submit Review
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 )}
             </div>

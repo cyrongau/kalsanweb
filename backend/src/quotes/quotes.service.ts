@@ -63,7 +63,7 @@ export class QuotesService {
         return quote;
     }
 
-    async setPrices(id: string, prices: { itemId: string; unitPrice: number }[]): Promise<Quote> {
+    async setPrices(id: string, prices: { itemId: string; unitPrice: number }[], discount: number = 0): Promise<Quote> {
         const quote = await this.findOne(id);
 
         if (quote.status === QuoteStatus.CONVERTED) {
@@ -82,15 +82,25 @@ export class QuotesService {
         }
 
         quote.status = QuoteStatus.PRICE_READY;
-        quote.total_amount = quote.items.reduce((sum, item) => sum + (Number(item.unit_price) || 0) * item.quantity, 0);
+        quote.discount = discount;
+
+        const subtotal = quote.items.reduce((sum, item) => sum + (Number(item.unit_price) || 0) * item.quantity, 0);
+        const discountAmount = subtotal * (discount / 100);
+        quote.total_amount = subtotal - discountAmount;
 
         const updatedQuote = await this.quotesRepository.save(quote);
 
         // Notify customer that prices are ready
-        const recipientEmail = (quote.user && quote.user.email) || quote.guest_email || 'customer@example.com';
-        await this.mailsService.sendQuoteReadyNotification(recipientEmail, quote.id, updatedQuote.total_amount);
+        await this.mailsService.sendQuoteReadyNotification(updatedQuote);
 
         return updatedQuote;
+    }
+
+    async delete(id: string): Promise<void> {
+        const result = await this.quotesRepository.delete(id);
+        if (result.affected === 0) {
+            throw new NotFoundException(`Quote with ID "${id}" not found`);
+        }
     }
 
     async getUnreadCount(): Promise<number> {
@@ -118,5 +128,13 @@ export class QuotesService {
 
         quote.status = QuoteStatus.CONVERTED;
         return this.quotesRepository.save(quote);
+    }
+
+    async findByUser(userId: string): Promise<Quote[]> {
+        return this.quotesRepository.find({
+            where: { user: { id: userId } },
+            relations: ['items'],
+            order: { created_at: 'DESC' }
+        });
     }
 }

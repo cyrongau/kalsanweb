@@ -46,6 +46,9 @@ export class Quote {
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
     total_amount: number;
 
+    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+    discount: number;
+
     @OneToMany(() => QuoteItem, (item) => item.quote, { cascade: true })
     items: QuoteItem[];
 
