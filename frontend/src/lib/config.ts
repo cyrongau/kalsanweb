@@ -11,8 +11,8 @@ const getBaseUrl = () => {
         return '/api';
     }
 
-    // Server-side fallback
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // Server-side fallback: Prioritize internal Docker network URL
+    return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 };
 
 export const API_BASE_URL = getBaseUrl();
