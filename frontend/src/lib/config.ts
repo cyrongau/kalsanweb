@@ -7,8 +7,9 @@ const getBaseUrl = () => {
             return 'http://localhost:3001';
         }
 
-        // For ANY other domain (staging, production, ngrok, etc.), use the relative /api path
-        return '/api';
+        // For ANY other domain (staging, production, ngrok, etc.), use the relative /web-api path
+        // This bypasses the 'location /api/' nGinx block on the server which is causing 502 errors
+        return '/web-api';
     }
 
     // Server-side fallback: Prioritize internal Docker network URL

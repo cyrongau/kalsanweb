@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     console.log(`[Next.js] Rewriting /api to ${backendUrl}`);
     return [
       {
+        source: '/web-api/:path*',
+        destination: `${backendUrl}/:path*`, // Rewrite /web-api request to backend root
+      },
+      {
         source: '/api/:path*',
         destination: `${backendUrl}/:path*`,
       },
