@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ path: string[] }> }) {
+    const params = await props.params;
     // Use backend URL from env, default back to localhost
     const backendUrl = process.env.INTERNAL_API_URL || 'http://backend:3001';
 
@@ -66,7 +67,8 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
 // Since this is a catch-all route [...path], we can export a default handler or separate.
 // In App Router, we export named functions for HTTP methods.
 
-const handler = async (req: NextRequest, { params }: { params: { path: string[] } }) => {
+const handler = async (req: NextRequest, props: { params: Promise<{ path: string[] }> }) => {
+    const params = await props.params;
     const backendUrl = process.env.INTERNAL_API_URL || 'http://backend:3001';
 
     try {
