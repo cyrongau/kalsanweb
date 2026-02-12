@@ -37,7 +37,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                     />
                 </Link>
 
-                <div className="absolute top-6 left-6 bg-white/90 dark:bg-background/90 backdrop-blur-sm px-4 py-2 rounded-2xl text-[10px] font-black text-primary shadow-lg uppercase tracking-[0.2em] pointer-events-none z-10">
+                <div className="absolute top-6 left-6 bg-white/90 dark:bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-2xl text-[9px] md:text-[10px] font-black text-primary shadow-lg uppercase tracking-[0.2em] pointer-events-none z-10">
                     {product.category}
                 </div>
 
@@ -103,13 +103,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
                     <button
                         onClick={handleAddToQuote}
                         className={cn(
-                            "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-2xl transition-all border border-primary/10 group/btn shadow-soft",
+                            "flex items-center gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 py-2 md:px-6 md:py-3 rounded-2xl transition-all border border-primary/10 group/btn shadow-soft",
                             isInQuote
                                 ? "bg-primary text-white border-transparent"
                                 : "bg-primary/5 dark:bg-primary/10 text-primary hover:bg-primary hover:text-white"
                         )}
                     >
-                        <Plus size={18} className={cn("transition-transform", isInQuote ? "rotate-45" : "group-hover/btn:rotate-90")} />
+                        <Plus size={14} className={cn("transition-transform md:w-[18px] md:h-[18px]", isInQuote ? "rotate-45" : "group-hover/btn:rotate-90")} />
                         {isInQuote ? "Add Quantity" : "Add to Quote"}
                     </button>
                 </div>

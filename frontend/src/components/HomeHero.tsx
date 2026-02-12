@@ -65,6 +65,7 @@ const HomeHero = () => {
                             alt={slide.headline}
                             className="w-full h-full object-cover"
                         />
+                        <div className="absolute inset-0 bg-black/30" />
                         <div className="absolute inset-0 bg-gradient-to-r from-secondary/80 via-secondary/40 to-transparent dark:from-slate-950/90" />
                     </div>
 

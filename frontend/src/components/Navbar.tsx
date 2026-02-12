@@ -236,7 +236,7 @@ const Navbar = () => {
                                 </Link>
                                 <Link
                                     href={getAccountLink()}
-                                    className="btn-primary py-2 px-6 rounded-lg text-sm bg-accent dark:bg-primary font-black uppercase tracking-wider hidden md:flex items-center gap-2 group"
+                                    className="btn-primary py-2 px-6 rounded-lg text-sm bg-accent dark:bg-primary font-black uppercase tracking-wider hidden lg:flex items-center gap-2 group"
                                 >
                                     <User size={16} className="group-hover:scale-110 transition-transform" />
                                     {user ? (user.role === 'admin' || user.role === 'super_admin' ? 'Dashboard' : 'Profile') : 'Login'}
@@ -281,7 +281,7 @@ const Navbar = () => {
 
                 {/* Drawer */}
                 <div className={cn(
-                    "absolute top-0 right-0 w-[320px] h-full bg-white dark:bg-slate-950 shadow-2xl transition-transform duration-500 ease-out flex flex-col",
+                    "absolute top-0 right-0 w-[320px] h-[100dvh] bg-white dark:bg-slate-950 shadow-2xl transition-transform duration-500 ease-out flex flex-col",
                     isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
                 )}>
                     {/* Header */}

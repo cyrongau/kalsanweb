@@ -342,33 +342,35 @@ const ProfilePage = () => {
                     {/* Main Content */}
                     <div className="flex-1 space-y-12">
                         {/* Header Section */}
-                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-soft border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-8 animate-in fade-in slide-in-from-right duration-500">
-                            <div className="flex items-center gap-8">
-                                <div className="relative group">
-                                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-50 dark:border-slate-800 shadow-xl transition-transform group-hover:scale-105">
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-10 shadow-soft border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row items-center md:items-center justify-between gap-6 md:gap-8 animate-in fade-in slide-in-from-right duration-500 text-center md:text-left">
+                            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 w-full md:w-auto">
+                                <div className="relative group shrink-0">
+                                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-50 dark:border-slate-800 shadow-xl transition-transform group-hover:scale-105 mx-auto">
                                         <img
                                             src={userAvatar}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
-                                    <label className="absolute bottom-1 right-1 bg-primary text-white p-2.5 rounded-full shadow-lg hover:scale-110 transition-transform border-4 border-white dark:border-slate-900 cursor-pointer">
-                                        <Camera size={18} />
+                                    <label className="absolute bottom-0 right-0 md:bottom-1 md:right-1 bg-primary text-white p-2 md:p-2.5 rounded-full shadow-lg hover:scale-110 transition-transform border-4 border-white dark:border-slate-900 cursor-pointer">
+                                        <Camera size={16} className="md:w-[18px] md:h-[18px]" />
                                         <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
                                     </label>
                                 </div>
-                                <div className="space-y-2">
-                                    <h1 className="text-3xl font-black text-secondary dark:text-white tracking-tight">{formData.fullName}</h1>
-                                    <p className="text-gray-500 dark:text-gray-400 font-medium tracking-tight">Customer since October 2023</p>
-                                    <div className="flex flex-wrap gap-2 pt-1">
-                                        <span className="bg-primary/5 text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-primary/20">Premium Customer</span>
-                                        <span className="bg-green-500/5 text-green-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-green-500/20">Verified</span>
+                                <div className="space-y-3 w-full">
+                                    <div className="space-y-1">
+                                        <h1 className="text-2xl md:text-3xl font-black text-secondary dark:text-white tracking-tight">{formData.fullName}</h1>
+                                        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium tracking-tight">Customer since October 2023</p>
+                                    </div>
+                                    <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
+                                        <span className="bg-primary/5 text-primary text-[10px] md:text-xs font-black px-4 py-2 md:px-3 md:py-1 rounded-full uppercase tracking-widest border border-primary/20">Premium Customer</span>
+                                        <span className="bg-green-500/5 text-green-500 text-[10px] md:text-xs font-black px-4 py-2 md:px-3 md:py-1 rounded-full uppercase tracking-widest border border-green-500/20">Verified</span>
                                     </div>
                                 </div>
                             </div>
                             <button
                                 onClick={handleSaveProfile}
-                                className="btn-primary px-8 py-4 rounded-2xl group shadow-primary/20 hover:shadow-primary/40"
+                                className="w-full md:w-auto btn-primary px-8 py-4 rounded-2xl group shadow-primary/20 hover:shadow-primary/40 flex items-center justify-center gap-3"
                             >
                                 <Save size={20} className="group-hover:scale-110 transition-transform" />
                                 <span className="uppercase tracking-[0.2em] font-black text-sm">Save All Changes</span>

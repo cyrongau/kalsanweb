@@ -13,7 +13,7 @@ const MobileBottomNav = () => {
 
     const navItems = [
         { name: 'Home', icon: Home, href: '/' },
-        { name: 'My Vehicle', icon: Car, href: '/profile/garage' },
+        { name: 'My Vehicle', icon: Car, href: user ? '/profile/garage' : '/auth/login' },
         { name: 'Catalog', icon: Grid, href: '/shop' },
         { name: 'Account', icon: User, href: user ? (user.role === 'admin' || user.role === 'super_admin' ? '/admin/dashboard' : '/profile') : '/auth/login' },
     ];
