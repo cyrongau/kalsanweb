@@ -56,7 +56,14 @@ const ProductDetailTabs = ({ description, specifications = {}, compatibility = [
     });
 
     const { user } = useAuth(); // Assuming useAuth exists and provides user info
-    const productId = (window.location.pathname.split('/').pop()); // Simple way to get productId
+    const [productId, setProductId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const id = window.location.pathname.split('/').pop() || null;
+            setProductId(id);
+        }
+    }, []);
 
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();

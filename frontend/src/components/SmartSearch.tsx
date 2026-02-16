@@ -22,6 +22,13 @@ interface SmartSearchProps {
 }
 
 const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProps) => {
+    const [query, setQuery] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [results, setResults] = useState<Product[]>([]);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+
     // Use debounced search
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -34,9 +41,9 @@ const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProp
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [query]);
+    }, [query, performSearch]); // Added performSearch to deps for completeness, though it's a stable ref here
 
-    const performSearch = async (searchTerm: string) => {
+    async function performSearch(searchTerm: string) {
         setIsLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(searchTerm)}`);
@@ -50,7 +57,7 @@ const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProp
         } finally {
             setIsLoading(false);
         }
-    };
+    }
 
     const handleSelectProduct = (productId: string) => {
         router.push(`/shop/${productId}`);
