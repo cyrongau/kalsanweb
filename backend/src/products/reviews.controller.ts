@@ -14,11 +14,11 @@ export class ReviewsController {
         return this.reviewsService.findByProduct(productId);
     }
 
-    // Protected: Write a review
-    @UseGuards(JwtAuthGuard)
+    // Protected: Write a review (Auth optional for guest reviews)
     @Post()
     create(@Request() req: any, @Body() createReviewDto: any) {
-        return this.reviewsService.create(req.user.id, createReviewDto);
+        const userId = req.user?.id || null;
+        return this.reviewsService.create(userId, createReviewDto);
     }
 
     // Admin: Get all reviews

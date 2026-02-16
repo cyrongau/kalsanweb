@@ -22,18 +22,35 @@ interface SmartSearchProps {
 }
 
 const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProps) => {
-    // ... existing state ...
+    // Use debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (query.length >= 2) {
+                performSearch(query);
+            } else {
+                setResults([]);
+                setIsOpen(false);
+            }
+        }, 300);
 
-    // ... existing useEffects ...
+        return () => clearTimeout(timer);
+    }, [query]);
 
-    // ... existing useState ...
-    const [query, setQuery] = useState('');
-    const [isOpen, setIsOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [results, setResults] = useState<Product[]>([]);
-
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
+    const performSearch = async (searchTerm: string) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(searchTerm)}`);
+            if (response.ok) {
+                const data = await response.json();
+                setResults(data);
+                setIsOpen(true);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSelectProduct = (productId: string) => {
         router.push(`/shop/${productId}`);
@@ -43,9 +60,12 @@ const SmartSearch = ({ inline = false, shortcutHint, onSelect }: SmartSearchProp
     };
 
     const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && query.trim()) {
-            router.push(`/shop?q=${encodeURIComponent(query)}`);
-            setIsOpen(false);
+        if (e.key === 'Enter') {
+            if (query.trim()) {
+                router.push(`/shop?q=${encodeURIComponent(query)}`);
+                setIsOpen(false);
+            }
+            e.preventDefault();
         }
     };
 

@@ -20,12 +20,18 @@ export class Review {
     @Column()
     product_id: string;
 
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.id, { nullable: true })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ nullable: true })
     user_id: string;
+
+    @Column({ nullable: true })
+    guest_name: string;
+
+    @Column({ nullable: true })
+    guest_email: string;
 
     @Column({
         type: 'enum',

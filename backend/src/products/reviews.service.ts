@@ -10,10 +10,10 @@ export class ReviewsService {
         private reviewsRepository: Repository<Review>,
     ) { }
 
-    async create(userId: string, createReviewDto: any): Promise<Review> {
+    async create(userId: string | null, createReviewDto: any): Promise<Review> {
         const review = this.reviewsRepository.create({
             ...createReviewDto,
-            user_id: userId,
+            user_id: userId || null,
             status: 'pending' // Always pending initially
         });
         return (await this.reviewsRepository.save(review) as unknown) as Review;

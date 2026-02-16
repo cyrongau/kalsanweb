@@ -44,7 +44,7 @@ import { StatsModule } from './stats/stats.module';
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME || 'kalsan_db',
       entities: [User, Product, Quote, QuoteItem, Order, Setting, Brand, Category, Review, Condition, ChatConversation, ChatMessage],
-      synchronize: true, // Only for development
+      synchronize: false, // Only for development
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
