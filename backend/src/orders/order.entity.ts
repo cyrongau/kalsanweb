@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, JoinColumn, ManyToOne, Index } from 'typeorm';
 import { Quote } from '../quotes/quote.entity';
 import { User } from '../users/user.entity';
 
@@ -47,9 +47,11 @@ export class Order {
     @Column({ nullable: true })
     invoice_url: string;
 
+    @Index()
     @CreateDateColumn()
     created_at: Date;
 
+    @Index()
     @Column({ default: false })
     is_read: boolean;
 }

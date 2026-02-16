@@ -103,17 +103,15 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
         { href: '/admin/quotes', icon: MessageSquare, label: 'Quote Inquiries' },
         { href: '/admin/orders', icon: Package, label: 'Customer Orders' },
         { href: '/admin/reviews', icon: Star, label: 'Reviews' },
-        { href: '/admin/customers', icon: Users, label: 'Customers' },
+        { href: '/admin/users', icon: Users, label: 'Customers' },
         { href: '/admin/cms', icon: Settings2, label: 'Content Manager' },
         { href: '/admin/inventory', icon: Package, label: 'Inventory' },
         { href: '/admin/taxonomy', icon: Tag, label: 'Taxonomy Manager' },
-        { href: '/admin/users', icon: Users, label: 'User Management' },
         { href: '/admin/roles', icon: ShieldCheck, label: 'Roles & Permissions' },
     ];
 
     const systemItems = [
         { href: '/admin/settings', icon: Settings, label: 'Site Settings' },
-        { href: '/admin/support', icon: LifeBuoy, label: 'Support' },
     ];
 
     return (

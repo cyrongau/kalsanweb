@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Body, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { OrderStatus } from './order.entity';
 
@@ -35,7 +35,10 @@ export class OrdersController {
     }
 
     @Get()
-    findAll() {
-        return this.ordersService.findAll();
+    findAll(@Query('page') page: string, @Query('limit') limit: string) {
+        return this.ordersService.findAll(
+            page ? parseInt(page) : 1,
+            limit ? parseInt(limit) : 10
+        );
     }
 }

@@ -115,11 +115,14 @@ export class QuotesService {
         await this.quotesRepository.update(id, { is_read: true });
     }
 
-    async findAll(): Promise<Quote[]> {
-        return this.quotesRepository.find({
+    async findAll(page: number = 1, limit: number = 10): Promise<{ data: Quote[], total: number }> {
+        const [data, total] = await this.quotesRepository.findAndCount({
             relations: ['user', 'items', 'items.product'],
-            order: { created_at: 'DESC' }
+            order: { created_at: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
         });
+        return { data, total };
     }
 
     async convertToOrder(id: string, paymentMethod: string = 'card', shippingAddress?: any): Promise<any> {

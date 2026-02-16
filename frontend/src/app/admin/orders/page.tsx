@@ -48,8 +48,8 @@ const OrdersPage = () => {
         try {
             const res = await fetch(`${API_BASE_URL}/orders`);
             if (res.ok) {
-                const data = await res.json();
-                setOrders(data);
+                const result = await res.json();
+                setOrders(result.data || []);
             }
         } catch (error) {
             console.error("Failed to fetch orders:", error);

@@ -98,10 +98,13 @@ export class OrdersService {
         await this.ordersRepository.update(id, { is_read: true });
     }
 
-    async findAll(): Promise<Order[]> {
-        return this.ordersRepository.find({
+    async findAll(page: number = 1, limit: number = 10): Promise<{ data: Order[], total: number }> {
+        const [data, total] = await this.ordersRepository.findAndCount({
             relations: ['quote', 'user'],
-            order: { created_at: 'DESC' }
+            order: { created_at: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
         });
+        return { data, total };
     }
 }

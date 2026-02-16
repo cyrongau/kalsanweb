@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, Index } from 'typeorm';
 import { User } from '../users/user.entity';
 import { QuoteItem } from './quote-item.entity';
 
@@ -52,9 +52,11 @@ export class Quote {
     @OneToMany(() => QuoteItem, (item) => item.quote, { cascade: true })
     items: QuoteItem[];
 
+    @Index()
     @CreateDateColumn()
     created_at: Date;
 
+    @Index()
     @Column({ default: false })
     is_read: boolean;
 }

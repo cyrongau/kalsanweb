@@ -53,8 +53,8 @@ const QuotesPage = () => {
         try {
             const res = await fetch(`${API_BASE_URL}/quotes`);
             if (res.ok) {
-                const data = await res.json();
-                setQuotes(data);
+                const result = await res.json();
+                setQuotes(result.data || []);
             }
         } catch (error) {
             console.error("Failed to fetch quotes:", error);

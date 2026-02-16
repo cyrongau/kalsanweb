@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, Query } from '@nestjs/common';
 import { QuotesService } from './quotes.service';
 import { User } from '../users/user.entity';
 
@@ -43,8 +43,11 @@ export class QuotesController {
     }
 
     @Get()
-    findAll() {
-        return this.quotesService.findAll();
+    findAll(@Query('page') page: string, @Query('limit') limit: string) {
+        return this.quotesService.findAll(
+            page ? parseInt(page) : 1,
+            limit ? parseInt(limit) : 10
+        );
     }
 
     @Post(':id/finalize')
