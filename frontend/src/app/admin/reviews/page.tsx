@@ -12,7 +12,9 @@ interface Review {
     title?: string;
     status: 'pending' | 'approved' | 'rejected';
     created_at: string;
-    user: {
+    guest_name?: string;
+    guest_email?: string;
+    user?: {
         first_name: string;
         last_name: string;
         email: string;
@@ -126,8 +128,17 @@ export default function AdminReviewsPage() {
                                             </td>
                                             <td className="py-6 px-8">
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-secondary dark:text-white">{review.user?.first_name} {review.user?.last_name}</span>
-                                                    <span className="text-xs text-gray-400">{review.user?.email}</span>
+                                                    {review.user ? (
+                                                        <>
+                                                            <span className="text-sm font-bold text-secondary dark:text-white">{review.user.first_name} {review.user.last_name}</span>
+                                                            <span className="text-xs text-gray-400">{review.user.email}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-sm font-bold text-secondary dark:text-white">{review.guest_name || 'Guest'}</span>
+                                                            <span className="text-xs text-gray-400">{review.guest_email || 'No email provided'}</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="py-6 px-8 max-w-sm">
@@ -146,8 +157,8 @@ export default function AdminReviewsPage() {
                                             </td>
                                             <td className="py-6 px-8">
                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${review.status === 'approved' ? 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400' :
-                                                        review.status === 'rejected' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
-                                                            'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400'
+                                                    review.status === 'rejected' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                                                        'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400'
                                                     }`}>
                                                     {review.status === 'pending' && <Clock size={12} />}
                                                     {review.status}
