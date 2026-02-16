@@ -9,23 +9,23 @@ if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
 fi
 
-# Check if DB_PASSWORD is set
-if [ -z "$DB_PASSWORD" ]; then
-  echo "ERROR: DB_PASSWORD is not set in .env file."
-  exit 1
-fi
+# 2. Set default DB_PASSWORD if not found
+DB_PASSWORD=${DB_PASSWORD:-postgres}
+echo "Using password: $DB_PASSWORD for synchronization."
 
 echo "Synchronizing database password for user 'postgres'..."
 
-# Execute password reset in the container
-if docker exec -it kalsan-db psql -U postgres -c "ALTER USER postgres WITH PASSWORD '$DB_PASSWORD';" ; then
+# Execute password reset in the container as the postgres user to bypass initial password prompt if possible
+# We use -i instead of -it for better compatibility with non-interactive shells
+if docker exec -i -u postgres kalsan-db psql -c "ALTER USER postgres WITH PASSWORD '$DB_PASSWORD';" ; then
   echo "SUCCESS: Database password synchronized."
 else
   echo "ERROR: Failed to synchronize database password."
+  echo "Try running this command manually: docker exec -it kalsan-db psql -U postgres"
   exit 1
 fi
 
 echo "Restarting backend service..."
-docker-compose restart backend
+docker compose restart backend
 
 echo "Database synchronization complete."
